@@ -1,0 +1,22 @@
+{
+  "name": "did-we-drift",
+  "description": "Project-drift audit for agent-built software: verifies a durable, version-controlled plan/tracking surface exists (single source of truth, evidence-gated progress, drift definition, audit cadence, user gates), then verdicts ON TRACK / DRIFTED / BLOCKED with the smallest course correction. Run at the end of every gate, phase, or wave.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jordan Olsen",
+    "email": "jordan@olsenbrands.com"
+  },
+  "homepage": "https://github.com/olsenbrands/did-we-drift",
+  "repository": "https://github.com/olsenbrands/did-we-drift",
+  "license": "MIT",
+  "keywords": [
+    "drift",
+    "audit",
+    "planning",
+    "single-source-of-truth",
+    "project-tracking",
+    "scope-creep",
+    "agents",
+    "verification"
+  ]
+}
