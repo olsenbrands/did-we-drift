@@ -96,15 +96,58 @@ verdict can't see.
   document that wins, and a **run binding**, so an audit can never grade your sprint against
   the wrong plan in a multi-plan repo.
 
-## QUICK by default, DEEP when it matters
+## Unbiased by construction: multi-agent DEEP mode
 
-QUICK is a bounded single-agent protocol (~10 minutes). DEEP fan-out auto-triggers only on
-mechanical conditions — the auditing session authored the work it's judging, a contested
-verdict, a high unmapped ratio, a changed deliverable sentence — and scales with contamination:
-a fresh auditor gets one **plan-blind work-lane** worker (the only seat that buys accuracy); a
-self-auditing session holds no lane itself and hands synthesis to a blind, preferably
-cross-model seat that never sees the primary's hypothesis. Hard cap of three seats, crew and
-cost announced first. Details: [`deep-mode.md`](skills/did-we-drift/deep-mode.md).
+The enemy of an honest drift verdict isn't reading capacity — it's **confirmation**. An agent
+that reads the plan first will charitably map commits onto tasks. A session auditing *its own*
+work has a live incentive to grade everything MINOR, because a harsher grade can stop its own
+run. did-we-drift treats bias as an engineering problem and solves it with **unbiased
+subagents whose blindness is enforced, not hoped for**:
+
+- **The plan-blind work lane.** A cheap worker reads ONLY commits, diffs, tests, and code —
+  it is *forbidden from opening any planning document* — and reports "what was actually being
+  built, in its own words." A second lane reads only the plan. Neither sees the other. Drift
+  is what falls out when the two accounts are diffed.
+- **The blind synthesis seat.** When the auditing session authored the work under audit, it
+  holds **no lane at all**: two lane workers report to a synthesis agent that never sees the
+  primary's hypothesis, its commit-to-task mapping, or even which lane was which — and is
+  **cross-model when available**, because fresh context on the same model family only partly
+  breaks a generative prior. The primary may overrule the seat, but must print that it did.
+- **Independence honesty.** Every report's `Auditor:` line states what was actually obtained —
+  `cross-model` or `(same model, independent context)` — never implying independence that
+  wasn't. And a self-auditing session may not settle on MINOR while unmapped substantive work
+  exists without the blind seat's sign-off.
+- **Bounded by design.** QUICK (a ~10-minute single-agent audit) stays the default; DEEP
+  auto-triggers only on mechanical conditions (self-audit, a contested verdict, a high
+  unmapped ratio, a changed deliverable sentence), caps at three seats, and announces its
+  crew and cost before dispatch. Details: [`deep-mode.md`](skills/did-we-drift/deep-mode.md).
+
+## New in v2.1 — the drift interrupt, designed by adversarial review
+
+v2.1's interrupt/resume/snooze protocol was itself built the way this skill audits: proposed,
+independently attacked by two reviewers from different model families with identical briefs,
+rebuilt from their convergent findings, and re-verified on live fixtures. What shipped
+([`interrupt-mode.md`](skills/did-we-drift/interrupt-mode.md)):
+
+- **Grade-gated interrupts** — MINOR bookkeeping fixes itself and reports; only real drift
+  earns a question, and only a moved plan (CAPTURED) forces a stop.
+- **Consequence scenarios with an evidence contract** — every "if unchanged → / if changed →"
+  pair is generated from a cited correction manifest, bounded to the next named gate, with
+  `CONSEQUENCE: UNPROJECTABLE` as the honest refusal and the raw diff always available on
+  demand as your falsification tool.
+- **Snooze with memory** — declines get stable IDs, re-surface compressed instead of
+  re-alarming, escalate a grade when they expire, and stop the loop if the same finding
+  survives two stamps. Declined drift never silently becomes sanctioned scope. **Silence
+  never snoozes**: an unattended iteration defers the question as PENDING; only your explicit
+  "no" is a snooze. And CAPTURED can't be snoozed at all — declining it means
+  ratify-or-revert.
+- **Transactional repair + a bootloader resume prompt** — accepted corrections apply only if
+  the plan and HEAD haven't moved since the audit, and the regenerated `/loop` / `/goal`
+  prompt that resumes your sprint is pointer-only ("this prompt grants no scope"): if a
+  sentence would still be meaningful with the plan deleted, it's a fork, and it's deleted.
+- **Run binding** — the directive pins `{repo, plan path, run-id}`, every audit re-verifies
+  it, stamps carry the run token, and ambiguity stops-and-asks instead of guessing. An audit
+  can never grade your sprint against the wrong plan.
 
 ## Install
 
