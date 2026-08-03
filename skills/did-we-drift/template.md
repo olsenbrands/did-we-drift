@@ -30,8 +30,9 @@ Work that must not start without a new dated user line here.
 Drift = (a) work serving no open stage; (b) starting PARKED items; (c) new process/evidence
 machinery beyond the agreed toolchain; (d) a stage past 2× budget without a stop-report;
 (e) state recorded outside this file. Audit protocol: run the did-we-drift skill at the end of
-every stage and at session start; verdict vocabulary ON TRACK / DRIFTED / BLOCKED; recovery =
-smallest edit (revert | park | legitimize with task + why), never a new document.
+every stage and at session start; verdict vocabulary ON TRACK / DRIFTED (MINOR|MATERIAL|CAPTURED)
+/ INCONCLUSIVE / BLOCKED, reported alongside a baseline status of RATIFIED | PROVISIONAL | NONE;
+recovery = smallest edit (revert | park | legitimize with task + why), never a new document.
 
 ## 6. OPERATING RULES
 One writer at a time · review rounds capped (state the cap) · CI (or the project's test gate)
@@ -52,6 +53,8 @@ Drift findings awaiting or holding a user decision; RUN BINDING lines live here 
 - RUN BINDING: run <id> → <SSOT path> (<date>)
 
 ## 10. AUDIT LOG
-One appended line per audit, exact grammar:
-- <date> · <HEAD sha> · <verdict[+grade]> · unmapped <n>/<m> · next check: <gate>[ · run:<run-id>]
+One appended line per audit, exact grammar (a line without a `dwd:` token predates this grammar;
+read its `NO BASELINE` as LEGACY-INSUFFICIENT — some D was missing — never as "no intent existed",
+and never rewrite it):
+- <date> · <HEAD sha> · <work-verdict[+grade]> · unmapped <n>/<m> · next check: <gate>[ · run:<run-id>] · baseline:<RATIFIED|PROVISIONAL|NONE> · basis:<path#L<a>-L<b>@fingerprint|-> · age:<gates>/<since-date|-> · dwd:v3
 ```

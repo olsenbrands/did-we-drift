@@ -1,7 +1,12 @@
 # Interrupt mode — what happens after a DRIFTED verdict
 
-Read this only when the verdict is DRIFTED. (NO BASELINE has its own flow in SKILL.md §3a;
-ON TRACK and BLOCKED never interrupt.)
+Read this only when the verdict is DRIFTED — at either baseline status. (INCONCLUSIVE has its
+own flow in SKILL.md §3; ON TRACK and BLOCKED never interrupt.)
+
+**On a PROVISIONAL basis**, every scenario pair and every question opens with the framing line
+`graded against the provisional basis reconstructed from <path>#L<a>-L<b>@<fingerprint>`. A user who
+disputes the reconstruction has thereby made the ratification decision, at the moment it is most
+concrete — record it as the pick, not as a rejected finding.
 
 ## 0. The correction manifest (internal — built before anything is shown)
 
@@ -29,9 +34,15 @@ never suppress the diff; it is the user's falsification tool.
 
 | Grade | Behavior |
 |---|---|
-| MINOR | Apply, report "applied", continue. No question. |
+| MINOR | **Bookkeeping repair** → apply, report "applied", continue; no question spent. **Content edit** (scope, stages, workstreams, PARKED — SKILL.md §5's table) → never auto-applied: show the one-line edit, record PENDING, and let the user's next word settle it. A MINOR grade on a content edit still needs the yes. |
 | MATERIAL | Scenario pairs, then ONE question with three answers: **(a) correct and continue** — apply park/revert now; the run keeps working in-scope stages; **(b) correct and restart** — REQUIRED whenever a correction LEGITIMIZES scope (scope is the user's lane): stop per §5, apply per §4, hand over the §6 prompt; **(c) snooze** — decline; record per §3. |
 | CAPTURED | Scenario pairs, then **RATIFY-OR-REVERT** — the user writes the dated line ratifying the moved deliverable/stage set, or the plan reverts to its last ratified state. **Never snoozable.** While unresolved: re-reported at full weight every audit, and the verdict cannot be ON TRACK. |
+
+**The one question is a safety budget, not a survey slot.** A MATERIAL or CAPTURED correction —
+or a PENDING decision already on the books — always outranks provisional-basis ratification debt
+for that question. Offer the ratification pick only when nothing above competes (SKILL.md §4
+aging). An audit that spends its single interrupt on bookkeeping while a scope breach waits has
+inverted its own priorities.
 
 ## 3. Unattended (inside a /loop or /goal; no human this iteration)
 
@@ -40,7 +51,7 @@ never suppress the diff; it is the user's falsification tool.
 | MINOR | Apply + record iff the bound directive preauthorizes bookkeeping repairs; else record PENDING. Continue either way. |
 | MATERIAL | Reach a safe checkpoint; record PENDING. Auto-PARK only iff preauthorized — never auto-revert, never legitimize. Continue only on stages still in scope; none left → stop. |
 | CAPTURED | STOP before further substantive work. |
-| BLOCKED / NO BASELINE | STOP. |
+| BLOCKED / INCONCLUSIVE | STOP. |
 
 **Silence never snoozes.** PENDING ≠ SNOOZED: only an explicit user decline writes SNOOZED.
 The question is deferred, not skipped — PENDING entries surface first when a human appears.
@@ -96,12 +107,18 @@ fork — delete it.** Store the prompt tracked (docs/ or an SSOT appendix), neve
   ancestor of current HEAD — `git merge-base --is-ancestor`) is corroboration, never
   identity. **Pin and trail disagreeing is a FINDING** (re-pointed run or dual authority) —
   report it; never pick a side silently.
-- **The directive text is itself a D2 authority candidate:** a directive that RESTATES plan
-  content is a second claim and fails D2. Directives carry names and paths, not definitions —
-  the same §6 test, applied inbound.
+- **The IGNITION PROMPT is itself a D2 authority candidate:** a /loop or /goal bootloader that
+  RESTATES plan content is a second claim and fails D2. Bootloaders carry names and paths, not
+  definitions — the same §6 test, applied inbound. **A bootloader is not the same artifact as a
+  dated user scope directive.** A user's dated, project-wide, falsifiable instruction is declared
+  intent, admissible as a provisional basis (SKILL.md §3a); that it lives outside the root file
+  is exactly what fails D1/D2, and exactly why the basis is PROVISIONAL rather than RATIFIED.
+  Both are true at once — report both axes rather than choosing between them.
 - **Ambiguity** (unverifiable pin, or >1 surviving root claim): attended → stop and ask,
   listing each candidate with its claim line, last-touched date, and stamp trail;
-  unattended → NO BASELINE (D2 unresolved), stop, record PENDING. No new verdict token.
+  unattended → `INCONCLUSIVE` with `Baseline: NONE`, stop, record PENDING. **Never elect one of
+  two live claims as "provisional"** — that breaks precisely the tie this section forbids
+  breaking silently.
 
 ## 8. Bias guard
 
