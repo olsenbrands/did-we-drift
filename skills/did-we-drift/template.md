@@ -45,7 +45,13 @@ listed explicitly (money, releases, scope, live systems) · same-commit bookkeep
 The active session edits ticks/evidence/dates. Scope changes (new stages, unparking, changing
 the deliverable) require a dated user line or the user's message quoted in the commit.
 
-## 9. AUDIT LOG
-One appended line per audit, exact grammar (the audit's only unprompted write):
-- <date> · <HEAD sha> · <verdict[+grade]> · unmapped <n>/<m> · next check: <gate>
+## 9. DRIFT DECISIONS
+Drift findings awaiting or holding a user decision; RUN BINDING lines live here too.
+- DWD-<kind>-<target> · first <date> · last <date> · count <n> · <grade> ·
+  PENDING|SNOOZED|RESOLVED|SUPERSEDED · correction C-<n> · <one-line finding>
+- RUN BINDING: run <id> → <SSOT path> (<date>)
+
+## 10. AUDIT LOG
+One appended line per audit, exact grammar:
+- <date> · <HEAD sha> · <verdict[+grade]> · unmapped <n>/<m> · next check: <gate>[ · run:<run-id>]
 ```

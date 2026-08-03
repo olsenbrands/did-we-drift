@@ -27,6 +27,9 @@ user picks from.**
   (iii) apply to AUDIT MODE only — when discovery is clearly heading to SCAFFOLD MODE, stay
   single-agent: the intent/work inventory is scaffold's fan-out.
 - DEEP announces its crew, its reason, and its cost before dispatch.
+- **Inside a /loop or /goal, verify the RUN BINDING first** (interrupt-mode.md §7): the
+  directive's pinned `{repo, SSOT path, run-id}` must verify, and a disagreement between the
+  pin and the stamp trail is a finding — never a tie to break silently.
 
 ## 1. Discover the tracking surface
 
@@ -99,31 +102,41 @@ empty template:
 ```
 VERDICT: ON TRACK | DRIFTED (MINOR|MATERIAL|CAPTURED) | BLOCKED | NO BASELINE
 Auditor: same session that produced the work | fresh session | cross-model
+Attendance: present | unattended
 Since: <sha | "first audit">   Scope: <repos/roots inspected; exclusions>
 Deliverable: "<quoted from the root authority (or MISSING)>"
 Findings: <numbered; each carries a file:line, commit hash, or command output>
-Trend: unmapped <n>/<m> (prev <n>/<m>)
+Trend: unmapped <n>/<m> (prev <n>/<m>)   Snoozed: <n> (oldest <date>) | none
 Corrections (smallest first): revert it | park it | legitimize it (task + why in the SSOT)
 Missing structure: <D-numbers + scaffold proposal, or "none">
 Next check due: end of <the next named gate/phase/wave>
 ```
 
 Grades: **MINOR** = bookkeeping/record integrity only (unevidenced tick, stale date, missing
-stamp) — correction is an edit. **MATERIAL** = substantive work outside open stages or a
-PARKED item started; deliverable intact — revert/park/legitimize. **CAPTURED** = the
-deliverable sentence or stage set moved without a dated user line, or >2× budget with no
-stop-report — the user is required before further work. BLOCKED = every open task waits on
-the user (partial blockers are findings, not BLOCKED). **No-change suppression:** same verdict
-and unchanged SSOT + evidence since the last stamp → one line + stamp, not a full report.
+stamp) — correction is an edit. **MATERIAL** = substantive work outside open stages, a PARKED
+item started, or >2× budget with no stop-report; deliverable intact — revert/park/legitimize.
+**CAPTURED** = the deliverable sentence or stage set moved without a dated user line — the
+user is required before further work, and CAPTURED is never snoozable. BLOCKED = every open
+task waits on the user (partial blockers are findings, not BLOCKED). **No-change suppression:**
+same verdict and unchanged SSOT + evidence since the last stamp → one line + stamp, not a full
+report (stamps and DRIFT DECISIONS records are bookkeeping and don't count as changes).
+
+**On any DRIFTED verdict, read `interrupt-mode.md` in this skill's directory and follow it** —
+grade-gated: MINOR applies and reports, no question; MATERIAL presents slotted consequence
+scenarios and asks ONE question (attended) or records PENDING (unattended); silence never
+snoozes — only an explicit user decline does.
 
 ## 5. The audit stamp (mandatory)
 
-Append ONE line to the SSOT's `## AUDIT LOG` (create the section if absent — this and the
-stamp are the only writes the skill may make without the user's yes):
+Append ONE line to the SSOT's `## AUDIT LOG` (create the section if absent):
 
 ```
-<date> · <HEAD sha> · <verdict[+grade]> · unmapped <n>/<m> · next check: <gate>
+<date> · <HEAD sha> · <verdict[+grade]> · unmapped <n>/<m> · next check: <gate>[ · run:<run-id>]
 ```
+
+**The complete allow-list of writes the skill may make without the user's yes:** (1) this
+stamp; (2) DRIFT DECISIONS records (interrupt-mode.md §4); (3) MINOR repairs iff the bound
+directive preauthorizes bookkeeping repairs. Nothing else, in any mode.
 
 ## Rules
 
@@ -135,6 +148,8 @@ stamp are the only writes the skill may make without the user's yes):
 - Never run DEEP twice on the same window; never repeat an unchanged report in full.
 - Independence honesty: if synthesis or verification ran on the same model family, print
   "(same model, independent context)" rather than implying independence not obtained.
+- CAPTURED is never snoozable; PENDING (a deferred question) is never recorded as SNOOZED
+  (an explicit decline).
 
 ## Common mistakes
 

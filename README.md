@@ -83,12 +83,18 @@ verdict can't see.
   autonomous run yet — and the skill scaffolds one from your repo's actual evidence, for your
   approval, before the loop burns a single iteration on an unanchored goal.
 - **Inside a `/loop` or `/goal`:** put one line at the top of the directive — *"First run the
-  did-we-drift skill and obey its verdict."* DRIFTED → smallest correction before any new work.
-  BLOCKED → print the waiting-on-you list and stop instead of inventing work. The loop
-  structurally cannot wander for six hours.
+  did-we-drift skill and obey its verdict."* MINOR bookkeeping fixes itself and reports.
+  MATERIAL drift interrupts with plain-English consequence scenarios — *"if left unchanged →
+  this; if changed → that"* — and one question: fix and continue, fix and restart (you get a
+  regenerated, pointer-only resume prompt that picks up where the sprint left off against the
+  updated plan), or snooze. Declined drift is remembered with a stable ID and re-surfaces
+  compressed — it never silently becomes sanctioned scope. Unattended iterations never guess:
+  they defer the question as PENDING and stop rather than invent work. CAPTURED — the plan
+  itself moved without you — always stops. The loop structurally cannot wander for six hours.
 - **Across handoffs:** run it at session start. The new session doesn't inherit vibes or
-  whichever handoff note it found first — it inherits a stamped window, a trend line, and one
-  document that wins.
+  whichever handoff note it found first — it inherits a stamped window, a trend line, one
+  document that wins, and a **run binding**, so an audit can never grade your sprint against
+  the wrong plan in a multi-plan repo.
 
 ## QUICK by default, DEEP when it matters
 
