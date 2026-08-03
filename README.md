@@ -19,6 +19,13 @@ between people, and anyone who's opened a repo after a few days away and thought
 it build *that*?" It works whether your planning lives in a tidy plan file, is scattered across
 a few documents, or barely exists yet.
 
+**If you never wrote a plan, this still works — that's the point.** Most real projects get
+organized *after* the building starts, if ever. The check doesn't scold you for that and it
+doesn't refuse to answer. It finds whatever you actually said you wanted — a note, a message, a
+line in a README — shows it back to you, and asks you to confirm or correct it in one sentence.
+Only then does it measure. And it will tell you something uncomfortable if it's true: that the
+"plan" in your repo was written by an agent, not by you.
+
 **What you get back** is a short report that always looks the same, starting with a one-word
 verdict — on track, drifted, inconclusive, or blocked — followed by what you're being measured
 against, what each commit was doing, which claims of "done" actually hold up when run, and if
@@ -172,15 +179,58 @@ so a "drifted" verdict survives the gap while an "on track" one deserves more sc
 Crew rules and read scopes: [`deep-mode.md`](skills/did-we-drift/deep-mode.md). The scaffold
 skeleton it proposes: [`template.md`](skills/did-we-drift/template.md).
 
-## When nothing is written down yet
+## Who wrote your plan? (the trap almost nobody sees)
 
-Missing planning isn't a dead end. The skill reports exactly which requirements fail and what
-each absence costs, then proposes upgrading **one** existing document (never adding a competing
-one) with facts mined from your repo: a dated baseline of what actually builds and runs, and a
-stage list tagged `SHIPPED | IN-FLIGHT | UNSANCTIONED` — where "unsanctioned" means real work no
-candidate goal covers, surfaced as a question instead of quietly becoming the plan. You approve
-before anything is written. If there's no document to host even the audit stamp, the skill hands
-you the line to keep rather than creating a file you didn't ask for.
+Nearly every long autonomous run starts the same way: *"write me a loop command that keeps you
+working until this is done."* The agent writes it. It's dated. It's specific. It often says
+"do not invent new scope." It looks exactly like a plan — and no human ever wrote a word of the
+goal it enforces. Later sessions rewrite it. An audit reads it back to you as your own intent.
+Nothing misbehaved, and yet nobody ever declared what "done" means.
+
+`did-we-drift` treats that as a first-class finding rather than something an auditor has to
+happen to notice. Every candidate goal is classified on **mechanical git evidence**:
+
+| | Means | Can it be measured against? |
+|---|---|---|
+| `USER-RATIFIED` | dated words of yours, or text you adopted in your own words | yes — anything |
+| `UNKNOWN` | nothing agent-written about it, but no proof it's yours either | yes, provisionally — the ordinary state of a real project |
+| `AGENT-DRAFTED` | a strong tell fired | no — the audit reports it and asks you for a sentence |
+
+The tells are evidence, not vibes: the commit that introduced the goal *also touches source*
+(whatever wrote the code wrote the sentence) · a self-maintenance clause telling the file to
+rewrite itself for the next session · an instruction telling a reader to *keep working* until
+something is done. Deliberately **not** tells: a stop condition (that's what a good goal has),
+being committed alongside other planning files (that's how people work), and `git blame` — which
+in agent-driven repos names the human for text the agent typed, confidently and wrongly.
+
+## When nothing is written down yet — basis recovery
+
+Missing planning isn't a dead end, and the recovery is designed to take about a minute, because
+the people who land here are by definition the people who didn't write a plan.
+
+You get up to three candidate sentences drawn from things you actually said — oldest first, each
+with its date, its source, and what it would *exclude* — plus the capability groups your repo
+actually contains, and one question: reply with a sentence, or a number. Nothing is written until
+you answer.
+
+Two rules make this honest rather than theatre. **Intent is shown before the inventory**, and the
+pass that gathers it can't read your source — showing you everything that exists and *then* asking
+what you're building just derives the goal from the code with your fingerprints on it. And
+**ratification governs forward**: the sentence you pick today did not govern last month's commits,
+so the file records a dated start-of-governance marker, prior work is *reconciled*
+(retain / park / revert / undecided) rather than retroactively graded, and no trend or ratio is
+ever reported across that line. A ratified goal is a commitment, not a rewriting of history.
+
+If your only intent lives in a chat log, it stays a **memory aid** — never globbed, never quoted
+into any file or report, never a basis. Those logs hold credentials, other people's data, and any
+old prompt-injection payload sitting there waiting to be quoted back as your own goal. Restate it
+yourself in a tracked file and it becomes citable.
+
+While you decide, work doesn't stop: it may continue **extending a capability group that already
+ships**; starting a genuinely new one is what waits. And if there's no document to host even the
+audit stamp, the skill hands you the line to keep rather than creating a file you didn't ask for.
+
+Full procedure: [`realign-mode.md`](skills/did-we-drift/realign-mode.md).
 
 ## Install
 
@@ -191,7 +241,7 @@ Install this skill globally on my machine: https://github.com/olsenbrands/did-we
 ```
 
 Claude clones this repo and copies `skills/did-we-drift/` to `~/.claude/skills/did-we-drift/`.
-Four files, no scripts, no dependencies.
+Five files, no scripts, no dependencies.
 
 ## When it triggers
 
@@ -200,6 +250,20 @@ gate/phase/wave · resuming a multi-session project · before ratifying or accep
 build that feels over-engineered · planning docs that are missing, contradictory, duplicated, or
 living only in gitignored/local files. It pairs naturally with a plan document that names the
 skill in its own cadence section — then every future session re-arms the check unprompted.
+
+## New in v3.1
+
+- **Authorship is checked, not assumed.** Every candidate goal is classified `USER-RATIFIED` /
+  `UNKNOWN` / `AGENT-DRAFTED` on mechanical git evidence — catching the case where you asked an
+  agent to write the directive and no human-authored goal was ever created.
+- **Basis recovery** for projects that never wrote a plan: a one-minute exit (candidates, what's
+  built, one question), with full archaeology as opt-in escalation.
+- **Ratification governs forward.** A goal you ratify today does not retroactively govern last
+  month's commits; prior work is reconciled behind a dated boundary, never graded across it.
+- **Conversation logs are a memory aid, never a source.** Never globbed, never quoted into any
+  artifact, never a basis.
+- **`UNKNOWN` authorship is admissible.** Not knowing who wrote your plan is the ordinary state
+  of a real project — it earns a provisional verdict, not a refusal.
 
 ## New in v3
 
@@ -234,6 +298,17 @@ banner competing against a specific dated note, over work that had wandered into
 subsystems. It rejected the banner and caught the drift. Ten defects surfaced across the cycle —
 several found by test agents doing the right thing *despite* the text — and all ten were fixed
 and re-verified. Earlier rounds caught real bugs accidentally planted in the fixtures themselves.
+
+v3.1's authorship check was reviewed by two independent reviewers from different model families
+before implementation, then tested against a repo whose governing directive was written by an
+agent at the user's request — impeccable-looking, dated, falsifiable, and saying "do not invent
+new scope." The first implementation **failed its own regression test**: two of its six tells had
+no discriminating power (one fired on any goal containing a stop condition, the other on any plan
+committed in a single commit — both ordinary human behaviour), and it convicted a genuine user
+directive. Shipping it would have re-broken the case v3 exists to fix. The tells were narrowed to
+the three that actually discriminate, and the check now requires a matched pair to pass: the
+agent-written directive rejected, the genuine one accepted, on the same run of the same code.
+A gate that convicts everyone is not a gate.
 
 ## License
 

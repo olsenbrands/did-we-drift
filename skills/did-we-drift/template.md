@@ -12,11 +12,23 @@ All other plans carry a `STATUS: SUPERSEDED → see <this file>` banner.
 ## 1. THE DELIVERABLE
 > One sentence, phrased as what a user/customer can do when this ships.
 
+Written by <the user>, <date>. (If an agent drafted this sentence, it is not ratified until the
+user restates or explicitly adopts it in a dated line of their own — see SKILL.md §3a.2.)
+
 Exclusion check: this sentence deliberately excludes <one plausible, tempting piece of work>.
 (If nothing is excluded, it is a banner, not a deliverable — rewrite it.)
 
+<Only if this was ratified mid-flight, during a basis recovery:>
+START-OF-GOVERNANCE: <sha> (<date>) — ratified during a basis-recovery pass over <n> prior
+commits. This sentence governs work from this point forward; earlier work is dispositioned in
+§2a, never retroactively graded against it.
+
 ## 2. BASELINE
 Verified facts a fresh agent needs (SHAs, deployed versions, known live defects), dated.
+
+## 2a. PRE-GOVERNANCE RECONCILIATION (only if §1 carries a START-OF-GOVERNANCE line)
+Work that predates ratification, dispositioned — never graded. One line each:
+- <capability group> · <commits> · RETAIN | PARK | REVERT | UNKNOWN · <one-line why>
 
 ## 3. STAGES
 Per stage: **WHY** (which deliverable step it unblocks) · **DONE-WHEN** (a command or
@@ -56,5 +68,5 @@ Drift findings awaiting or holding a user decision; RUN BINDING lines live here 
 One appended line per audit, exact grammar (a line without a `dwd:` token predates this grammar;
 read its `NO BASELINE` as LEGACY-INSUFFICIENT — some D was missing — never as "no intent existed",
 and never rewrite it):
-- <date> · <HEAD sha> · <work-verdict[+grade]> · unmapped <n>/<m> · next check: <gate>[ · run:<run-id>] · baseline:<RATIFIED|PROVISIONAL|NONE> · basis:<path#L<a>-L<b>@fingerprint|-> · age:<gates>/<since-date|-> · dwd:v3
+- <date> · <HEAD sha> · <work-verdict[+grade]> · unmapped <n>/<m> · next check: <gate>[ · run:<run-id>] · baseline:<RATIFIED|PROVISIONAL|NONE> · basis:<path#L<a>-L<b>@fingerprint|-> · basis-auth:<user-dated|user-ratified-post-hoc(<n> commits)|unknown|agent-drafted> · age:<gates>/<since-date|-> [· realign:<date>] · dwd:v3
 ```

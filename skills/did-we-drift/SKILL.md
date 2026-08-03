@@ -43,7 +43,9 @@ files — it cites, and proposes candidates the user picks from.**
 ## 1. Discover the tracking surface
 
 Bounded commands — do NOT read the whole repo:
-- Tracked candidates: `git ls-files | grep -iE '(^|/)(PLAN|ROADMAP|TRACKER|BACKLOG|TODO|MILESTONE|LAUNCH|SPEC|ADR|DIRECTIVE|SEQUENCE|CHARTER)[^/]*\.md$'`
+- Tracked candidates — the keyword may sit **anywhere in the filename**, not just at its start
+  (`BUILD-DIRECTIVE.md`, `v2-ROADMAP.md`, and `notes/PROJECT-PLAN.md` must all match):
+  `git ls-files | grep -iE '(PLAN|ROADMAP|TRACKER|BACKLOG|TODO|MILESTONE|LAUNCH|SPEC|ADR|DIRECTIVE|SEQUENCE|CHARTER|BRIEF|GOAL)[^/]*\.md$'`
   plus `docs/`, `.planning/`, `decisions/`, and roadmap/status sections of CLAUDE.md /
   AGENTS.md / README.
 - Hidden candidates: the same names among untracked/ignored files (`git status --short
@@ -83,6 +85,11 @@ own axis:
 - **No admissible basis** → `Baseline: NONE`, `VERDICT: INCONCLUSIVE`. Report the failed
   D-numbers, what each absence costs, any drift signals you can name without a basis, and the
   §3a scaffold proposal. **Never grade work against nothing.**
+  **If the project also has real history (any substantive commit, or dated activity in a non-git
+  project), read `realign-mode.md` in this skill's directory and follow it** — it is the expanded
+  form of §3a.7's proposal, never a second path beside it. It adds no verdict token: a recovery
+  in progress is still `INCONCLUSIVE (NONE)`. Its core rule: **a ratified sentence governs
+  forward from its own date**, so prior work is *reconciled*, never retroactively graded.
 
 ## 3a. Build the PROVISIONAL basis
 
@@ -98,8 +105,59 @@ strongest first: ratified user direction > plans > issues/READMEs > implementati
 so X was the plan" legitimizes every drift ever committed.
 
 **2. Admissibility — a source may supply SCOPE only if ALL of these hold:**
-- **User-authored**: a dated line the user wrote, or text the user quoted and ratified in their
-  own words. **Agent-drafted text approved by silence is NEVER user direction.**
+- **User-authored — and this bullet requires POSITIVE evidence, not merely the absence of
+  doubt.** Classify every candidate scope source as exactly one value and print it:
+  `USER-RATIFIED` (a dated line the user wrote, or text the user quoted and ratified in their own
+  words) · `UNKNOWN` · `AGENT-DRAFTED`. **AGENT-DRAFTED is inadmissible for scope; UNKNOWN may
+  support a PROVISIONAL basis but never a RATIFIED one.**
+  Why the burden runs this way: the most common way a long build starts is a user asking an
+  agent to write the directive that will govern it. That produces an impeccable document —
+  dated, project-wide, falsifiable, citable, often saying "do not invent new scope" — that no
+  human ever authored. **Agent-drafted text approved by silence is NEVER user direction.**
+
+  **Evidence FOR user authorship** (any one, cited, is enough to reach USER-RATIFIED provided no
+  strong tell below fires): the user's own first-person voice about their intent ("I want…",
+  "…without a new dated line from me") · a dated attribution to a named person alongside a quoted
+  statement · a dated line in which the user adopts or restates text in their own words.
+
+  **Tells AGAINST — agent-drafted.** All mechanical, and each one describes something a *human*
+  writing about their own project has no reason to write. **`git blame` is not a tell** — in
+  agent-driven repos it names the human for text the agent typed, reporting the wrong answer with
+  full confidence.
+
+  | Tell | Check | Weight |
+  |---|---|---|
+  | The commit that introduced the scope sentence also touches source | `git log -S '<sentence>' --oneline`, then `git show --stat <sha>` | strong — whatever wrote the code wrote the sentence |
+  | Self-maintenance clause: rewrite this file back into itself for the next session | read it | strong — the bootloader pattern (interrupt-mode.md §6) |
+  | A work-continuation instruction addressed to an executor: "continue working until…", "keep going until…", "…that is done" | read it | strong |
+  | The authority file was created after the bulk of the code | `git log --diff-filter=A` vs the first substantive commit | advisory — post-hoc rationalization |
+  | Refers to the user in the third person ("ask Sam", "the user wants") | read it | **advisory only, never decisive** — users write instructions *to* their agents this way |
+
+  **A stop condition is NOT a tell.** "Stop when X is live", "done when the flag ships" is a scope
+  boundary — exactly what a good user directive contains. Only an instruction telling a *reader to
+  keep working* counts. Nor is "the plan was committed alongside other planning files": writing
+  your plan and committing it once is ordinary human behaviour, not evidence of anything.
+
+  **Decision rule, and it is three-way — the middle value is not a failure:**
+
+  | Classification | When | What it permits |
+  |---|---|---|
+  | `USER-RATIFIED` | evidence-for present, no strong tell | any basis, including RATIFIED |
+  | `UNKNOWN` | no strong tell, but no evidence-for either | **a PROVISIONAL basis only** — print the status and carry the ratification ask |
+  | `AGENT-DRAFTED` | any strong tell fires | nothing: inadmissible for scope → `Baseline: NONE` |
+
+  `UNKNOWN` is the ordinary state of most real projects and it is **admissible for PROVISIONAL** —
+  that is precisely what "provisional" means. Do not collapse it into NONE: doing so would refuse
+  to grade every project whose planning is merely undocumented rather than agent-written, which is
+  the failure this whole two-axis design exists to end. Only a positive strong tell disqualifies a
+  source. None of the three values is drift, and none is an accusation — say which tells fired,
+  cite them, and move on.
+
+  **Retroactive case.** If a basis pinned by earlier audits is now classified AGENT-DRAFTED, it
+  was never admissible: report `Baseline: NONE`, print
+  `PRIOR STAMPS UNSOUND (audits <dates>)`, and **never rewrite the old stamps**. Do **not** grade
+  this CAPTURED — CAPTURED means scope *moved*, and its ratify-or-revert remedy is meaningless
+  when nothing was ever ratified.
 - **Project-wide**: it states the outcome, not one slice of it. A gate/slice instruction
   ("close the Windows gate; hold Mac this pass") is an **OVERLAY** on whatever full-scope basis
   survives — never a replacement for it. Treating a slice as the whole is how an audit reports
@@ -187,6 +245,7 @@ Runs identically for a RATIFIED or PROVISIONAL basis.
 ```
 VERDICT: ON TRACK | DRIFTED (MINOR|MATERIAL|CAPTURED) | INCONCLUSIVE | BLOCKED
 Baseline: RATIFIED | PROVISIONAL (basis: <path>#L<a>-L<b>@<fingerprint>, dated <source date>, pinned <date>, age <n> gates / since <date>) | NONE
+Authorship: USER-RATIFIED (<the ratifying line's citation>) | AGENT-DRAFTED (<tells that fired>) | UNKNOWN (<what is missing>) | n/a (no candidate)
 Work map: FULL (<k> sanctioned tasks from <source>) | PARTIAL (<what is unmapped territory>) | n/a (no basis)
 Auditor: same session that produced the work | fresh session | cross-model
 Attendance: present | unattended
@@ -264,18 +323,26 @@ Append ONE line to the SSOT's `## AUDIT LOG` (create the **section** if absent �
 **file**; see the no-host rule below):
 
 ```
-<date> · <HEAD sha> · <work-verdict[+grade]> · unmapped <n>/<m> · next check: <gate>[ · run:<run-id>] · baseline:<RATIFIED|PROVISIONAL|NONE> · basis:<path#L<a>-L<b>@fingerprint|-> · age:<gates>/<since-date|-> · dwd:v3
+<date> · <HEAD sha> · <work-verdict[+grade]> · unmapped <n>/<m> · next check: <gate>[ · run:<run-id>] · baseline:<RATIFIED|PROVISIONAL|NONE> · basis:<path#L<a>-L<b>@fingerprint|-> · basis-auth:<user-dated|user-ratified-post-hoc(<n> commits)|unknown|agent-drafted> · age:<gates>/<since-date|-> [· realign:<date>] · dwd:v3
 ```
+
+**Null forms — use these exact spellings so stamps sort and compare.** With no basis
+(`Baseline: NONE`): `unmapped n/a` · `basis:-` · `age:-/-`. On a first audit with a basis:
+`age:0/<date-pinned>`. Never invent a variant (`n/a(NONE)`, `0/0`, `-`), and never leave a field
+out — a missing field and an empty field read differently to the next auditor.
 
 **Reading legacy stamps:** a stamp with no `dwd:v3` token predates the two-axis grammar. Its
 `NO BASELINE` means **LEGACY-INSUFFICIENT** — "some D requirement was missing" — and must NEVER
 be read as `NONE` (no intent existed) or rewritten. Leave old stamps exactly as they are.
 
-**No host, no write.** If the project has NO durable tracked document at all (the `Baseline: NONE`
-/ nothing-but-code case), the stamp is **reported verbatim in the audit output and carried as the
-first line of the scaffold proposal** — you do not create a file to hold it. Creating one is
-indistinguishable from unilaterally creating structure, which §3a.7 gates behind the user's yes.
-"Mandatory" governs *producing* the stamp, never *manufacturing a host* for it.
+**No host, no write.** If the project has no durable tracked document to host the stamp, it is
+**reported verbatim in the audit output and carried as the first line of the scaffold proposal** —
+you do not create a file to hold it. Creating one is indistinguishable from unilaterally creating
+structure, which §3a.7 gates behind the user's yes. "Mandatory" governs *producing* the stamp,
+never *manufacturing a host* for it. This covers two cases: no document exists at all, **and a
+document exists but you just ruled its content inadmissible** — writing an audit trail into a file
+whose authority you have declined would lend it the standing you withheld. In the second case say
+which file you declined to write to, and why.
 
 **The complete allow-list of writes the skill may make without the user's yes:** (1) this stamp;
 (2) DRIFT DECISIONS records (interrupt-mode.md §4); (3) **bookkeeping repairs** — preauthorized
@@ -299,6 +366,10 @@ decision the user owns, however obviously correct it looks.
 
 - Two axes, always both: the work verdict answers "is the build on course"; the baseline status
   answers "how much should you trust that answer". Never let one silently stand in for the other.
+- A ratified sentence governs FORWARD from its own date. Work that predates it is reconciled,
+  never retroactively graded — and no trend or ratio may span a start-of-governance boundary.
+- Authorship is three-way and only `AGENT-DRAFTED` disqualifies. `UNKNOWN` is the ordinary state
+  of a real project and supports a PROVISIONAL basis — never collapse it into NONE.
 - Correct drift with the smallest edit to the SSOT — never by writing a new plan document.
 - The skill never authors or edits the deliverable sentence, and never copies an unratified one
   into the user's files. Cite it; propose candidates; the user picks.
@@ -321,6 +392,12 @@ decision the user owns, however obviously correct it looks.
   say what you found — a deficient surface is a `Baseline:` value, not a gag order.
 - **Vacuous ON TRACK.** `unmapped 0/0` against no work map is not a clean audit; it is an
   ungraded one. Report PARTIAL and INCONCLUSIVE.
+- **Accepting a directive the user commissioned but did not write.** Dated, falsifiable, and
+  "do not invent new scope" are not authorship. Run the §3a.2 tells and print the verdict.
+- **Grading history against a sentence ratified today** — that is deriving scope from code with
+  a ratification ceremony wrapped around it.
+- Inventing tag or verdict vocabulary mid-audit (a fifth stage tag, a new verdict word). If the
+  existing set can't express it, that belongs in a finding, not a new token.
 - Reconstructing scope from a banner that excludes nothing — inadmissible, however official.
 - Treating the latest gate instruction as the whole deliverable, so abandoned scope never surfaces.
 - Copying a provisional sentence into the user's plan "just to pin it" — pin the pointer.
