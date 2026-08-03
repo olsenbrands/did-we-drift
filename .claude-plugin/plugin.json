@@ -1,7 +1,7 @@
 {
   "name": "did-we-drift",
-  "description": "Project-drift audit for agent-built software: verifies a durable, version-controlled plan/tracking surface exists (single source of truth, evidence-gated progress, drift definition, audit cadence, user gates), then verdicts ON TRACK / DRIFTED / BLOCKED with the smallest course correction. Run at the end of every gate, phase, or wave.",
-  "version": "1.0.0",
+  "description": "Project-drift audit for agent-built software: verifies a durable, version-controlled plan/tracking surface exists (root authority, evidence-gated progress, drift definition, audit cadence, dated baseline), then verdicts ON TRACK / DRIFTED (MINOR|MATERIAL|CAPTURED) / BLOCKED / NO BASELINE with the smallest course correction. QUICK single-agent audit by default; contamination-scaled DEEP fan-out with a plan-blind work lane when triggers fire. Run at the end of every gate, phase, or wave.",
+  "version": "2.0.0",
   "author": {
     "name": "Jordan Olsen",
     "email": "jordan@olsenbrands.com"

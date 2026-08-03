@@ -12,6 +12,9 @@ All other plans carry a `STATUS: SUPERSEDED → see <this file>` banner.
 ## 1. THE DELIVERABLE
 > One sentence, phrased as what a user/customer can do when this ships.
 
+Exclusion check: this sentence deliberately excludes <one plausible, tempting piece of work>.
+(If nothing is excluded, it is a banner, not a deliverable — rewrite it.)
+
 ## 2. BASELINE
 Verified facts a fresh agent needs (SHAs, deployed versions, known live defects), dated.
 
@@ -41,4 +44,8 @@ listed explicitly (money, releases, scope, live systems) · same-commit bookkeep
 ## 8. CHANGE RULES
 The active session edits ticks/evidence/dates. Scope changes (new stages, unparking, changing
 the deliverable) require a dated user line or the user's message quoted in the commit.
+
+## 9. AUDIT LOG
+One appended line per audit, exact grammar (the audit's only unprompted write):
+- <date> · <HEAD sha> · <verdict[+grade]> · unmapped <n>/<m> · next check: <gate>
 ```
