@@ -35,13 +35,104 @@ Because the report has a fixed shape, you can put two of them side by side month
 compare them directly — even if different AI models produced them.
 
 **When to run it:** at the end of any work session or milestone, when you pick a project back up
-after time away, and before you kick off a long unattended run. That last one matters most — a
-check *before* the sprint tells you whether your plan is solid enough to hand over, while a
-check *after* only tells you how far things went. If you run agents in long loops, add one line
-to your instructions telling the agent to run this skill and follow its verdict, and it becomes
-an automatic guardrail rather than something you have to remember.
+after time away, and before you kick off a long unattended run. If you run agents in long loops,
+add one line to your instructions telling the agent to run this skill and follow its verdict, and
+it becomes an automatic guardrail rather than something you have to remember.
+
+**And when you're starting fresh, don't wait for the first check — run `/did-we-drift init`.**
+You write a plan with your agent the way you always do; then, before any build work starts, init
+turns that plan into the one baseline document every future check will measure against. The agent
+does all the formatting and structure. The only thing it cannot do for you — by design — is write
+the finish line: **you type one sentence saying what "done" means, in your own words**, and it's
+recorded with your name, the date, and your exact words preserved in the project's history, where
+any future audit (by any AI, on any machine) can verify it came from you. Thirty seconds of
+typing, and every check afterward skips the archaeology and answers only the question you care
+about: *is the work still on course?*
+
+The whole system is a lifecycle: **start right** (`init`) → **stay right** (the audit at every
+milestone) → **get interrupted only when it matters** (real drift asks you one question) →
+**recover if you started wrong** (basis recovery reconstructs a goal from what you actually said).
+Users who run init never need the recovery path at all.
 
 ---
+
+## Start audit-ready: `/did-we-drift init`
+
+Init exists because of a pattern we kept finding in real projects: nearly every long autonomous
+run starts with someone telling an agent *"write me the plan and keep working until it's done."*
+The agent writes an impeccable-looking plan — dated, detailed, even saying "do not invent new
+scope" — and no human ever authored the goal it enforces. Months later, nobody can prove what the
+project was supposed to be.
+
+Init closes that at the source. Run it once, after the plan exists and before the build starts:
+
+- **It builds one plan file, not a pile.** Your draft plan gets upgraded in place into the single
+  authoritative document: the goal, the stages with checkable done-conditions, a verified record
+  of what currently works, the drift rules, and the audit schedule. One file wins; that's a rule.
+- **The finish line is yours, provably.** Init proposes candidates from your own plan, but the
+  sentence that governs everything must come from you — typed in your words, landing in its own
+  commit with your verbatim reply preserved. If you're in a hurry and just say "adopt it," init
+  records that honestly as *adopted, not authored*, tells you the baseline will read as
+  provisional until you write it yourself, and moves on. It never forges your signature.
+- **It never grades its own work.** Init produces a receipt, not a verdict. The proof comes when
+  you run a plain `/did-we-drift` afterward — ideally from a fresh session or a different AI —
+  and it independently returns `Baseline: RATIFIED` with nothing missing. Init even prints the
+  exact report you should expect, so you'll know at a glance if something's off.
+- **Existing work is handled honestly.** If commits predate init, they're recorded behind a dated
+  boundary and dispositioned (keep / shelve / undo / decide later) — never retroactively graded
+  against a goal that didn't exist when they were written.
+- **Launching a loop?** Init records the run-to-plan binding and hands you the one line to put in
+  your directive: *"First run the did-we-drift skill and obey its verdict."*
+
+Full procedure: [`init-mode.md`](skills/did-we-drift/init-mode.md).
+
+## Best practices — the step-by-step
+
+**Starting a new project (the golden path):**
+
+1. Write your plan with your agent, as detailed or as rough as you like.
+2. Before any build work: run `/did-we-drift init`.
+3. When it asks for the finish line, **type one sentence in your own words** and name one thing
+   it deliberately excludes. Don't say "yes"; don't say "adopt 1." This is the single most
+   valuable thirty seconds in the whole system — it's what makes the plan *yours* on the record.
+4. Answer the two loop questions if you're about to launch one (may the agent auto-fix
+   bookkeeping? may it auto-shelve out-of-scope work?).
+5. Approve the writes. Say yes to the one-line pointer in CLAUDE.md — it makes every future
+   session re-arm the check automatically.
+6. **Verify:** run `/did-we-drift` from a fresh session (a different AI if you have one). Expect
+   `ON TRACK · Baseline: RATIFIED`. Init printed the exact expected report; anything else is
+   worth a look.
+7. If you're launching a loop, put init's one-liner in your directive.
+
+**During the build:**
+
+8. Run `/did-we-drift` at the close of every phase or milestone, and at session start when
+   resuming. (The CLAUDE.md pointer makes agents do this unprompted.)
+9. Read both axes every time: `VERDICT:` is the work; `Baseline:` is how much to trust the
+   measurement. `ON TRACK (PROVISIONAL)` means "on course, but ratify your goal when you get a
+   minute."
+10. On `DRIFTED`, answer the one question with the smallest fix that's true: undo it, shelve it,
+    or — if the detour is actually what you want now — legitimize it with a dated line. Never
+    just ignore it: declined drift is remembered and resurfaces.
+11. Never edit the goal sentence casually. Changing it takes a dated line from you — a silent
+    edit is the highest-severity drift there is, and the audit will catch it.
+
+**Picking a project back up after time away:**
+
+12. Run the audit *before* reading the code. The report tells you where things stand, what's
+    waiting on you, and when the next check is due — faster and more honest than skimming
+    commits.
+
+**If you never wrote a plan and you're deep in a build:**
+
+13. Just run `/did-we-drift`. It won't scold you and won't refuse — it finds what you actually
+    said you wanted, shows you up to three candidate goals with sources and dates, and asks for
+    one sentence. From there you're on the same footing as someone who ran init on day one.
+
+**Habits that make every audit stronger:** phrase done-conditions as commands or observable
+facts, not vibes · record evidence in the same commit that finishes the work · keep exactly one
+authoritative plan file and date every decision in it · when an audit says `EVIDENCE:
+UNVERIFIABLE`, treat it as a to-do, not an insult.
 
 ## Why drift is hard to see
 
@@ -241,7 +332,7 @@ Install this skill globally on my machine: https://github.com/olsenbrands/did-we
 ```
 
 Claude clones this repo and copies `skills/did-we-drift/` to `~/.claude/skills/did-we-drift/`.
-Five files, no scripts, no dependencies.
+Six files, no scripts, no dependencies.
 
 ## When it triggers
 
@@ -250,6 +341,22 @@ gate/phase/wave · resuming a multi-session project · before ratifying or accep
 build that feels over-engineered · planning docs that are missing, contradictory, duplicated, or
 living only in gitignored/local files. It pairs naturally with a plan document that names the
 skill in its own cadence section — then every future session re-arms the check unprompted.
+
+## New in v3.2
+
+- **`/did-we-drift init`** — start audit-ready. One command after planning, before building:
+  produces the ratified baseline document future audits measure against, with the user's
+  finish-line sentence provably their own (verbatim words in a dedicated commit, verifiable by
+  `git log` from any machine, any vendor).
+- **A ratification that can't be forged or hollow.** Typing your sentence earns full RATIFIED
+  standing; a reflex "adopt it" is recorded honestly as provisional — and the difference is
+  stated out loud at the moment of choice, never discovered later.
+- **Init never grades itself.** No verdict, no audit stamp — a receipt, plus the printed report a
+  fresh independent audit is expected to return.
+- **Governance boundary for existing work**: commits that predate init are dispositioned behind a
+  dated line, never retroactively graded against the new goal.
+- **Best-practices path documented** (above) — the thirty-second habit that makes the entire
+  recovery machinery unnecessary.
 
 ## New in v3.1
 
@@ -309,6 +416,20 @@ directive. Shipping it would have re-broken the case v3 exists to fix. The tells
 the three that actually discriminate, and the check now requires a matched pair to pass: the
 agent-written directive rejected, the genuine one accepted, on the same run of the same code.
 A gate that convicts everyone is not a gate.
+
+v3.2's init went through the same wringer. Two independent pre-implementation reviews killed
+three pieces of the original design — a genesis stamp that fabricated an audit that never ran, a
+self-check where the author certified its own work, and an adoption shortcut. The first
+implementation then **failed its most important test**: a simulated user in a hurry, replying
+only "yes" and "adopt 1," walked away with full user-authorship credit — laundering, one level
+removed, through text the agent itself had drafted earlier. The fix requires the authorship test
+to run on the *source* of any adopted sentence, not just the reply. On the re-test, the hurried
+user got an honest provisional baseline and was told so at the moment of choice. The chained
+proof then ran end-to-end: init on one fixture, followed by an *unprimed* auditor from a
+different model family that was never told init had run — it independently discovered the basis,
+verified the ratification commit by hash, and returned `Baseline: RATIFIED`. One test agent also
+caught and fixed a defect in its own output mid-run, and refused to fabricate history to make a
+pattern match — behaviors the text now encodes.
 
 ## License
 

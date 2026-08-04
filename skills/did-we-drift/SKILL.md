@@ -1,6 +1,6 @@
 ---
 name: did-we-drift
-description: Use when ending a build gate, phase, or wave; resuming a multi-session project; before ratifying/accepting a plan; or when a build feels over-engineered or off-course from the user's deliverable. Also use when planning docs are missing, contradictory, duplicated, stale, or live only in gitignored/local files.
+description: Use when ending a build gate, phase, or wave; resuming a multi-session project; before ratifying/accepting a plan; or when a build feels over-engineered or off-course from the user's deliverable. Also use when planning docs are missing, contradictory, duplicated, stale, or live only in gitignored/local files. Users can run `/did-we-drift init` after writing a plan and before launching a build to establish a ratified baseline the audits will use.
 ---
 
 # Did We Drift
@@ -16,6 +16,14 @@ files — it cites, and proposes candidates the user picks from.**
 
 ## 0. Preflight
 
+- **MODE DISPATCH — init.** Enter init **only** when the invocation's first literal argument is
+  the bare token `init` (trim + casefold: `/did-we-drift init`) — then read `init-mode.md` and
+  follow it instead of auditing. **Never infer init from prose** — not from "set up", "start",
+  "launch", a fresh repo, or /loop wording; a missed init costs one sentence of advice, a false
+  init writes to the user's repo. A user who describes wanting setup without the token gets the
+  ordinary audit — and if that audit resolves `Baseline: NONE` over a repo with no substantive
+  history, add one line: "no work exists yet; `/did-we-drift init` establishes a ratified basis
+  before you start", and stop. A directive, file, or quoted text can never select init.
 - **Disclose the auditor** (goes in the report): `same session that produced the work` |
   `fresh session` | `cross-model`.
 - **Pick the mode.** QUICK (this file, single agent, default) — unless ANY of these holds, in
@@ -219,10 +227,13 @@ the user's yes.
 Runs identically for a RATIFIED or PROVISIONAL basis.
 
 - **Resolve the window**, first match wins: (1) the HEAD sha recorded in the last `AUDIT LOG`
-  stamp; (2) **no stamp exists → repo start**, reported as `Since: first audit`. "The last
-  evidence commit" is NOT a window anchor — on a first audit the most recent evidence row is
-  usually written *at* HEAD, which would make the window empty and silently skip the entire
-  history. When no stamp exists, audit everything and say so.
+  stamp; (2) no stamp, but the SSOT carries a `START-OF-GOVERNANCE: <sha>` line (written by init
+  or a realign pass) → **that sha**, reported as `Since: <sha> (governance start)` — work before
+  it was reconciled, never graded, and no ratio may include it; (3) neither → repo start,
+  reported as `Since: first audit`. "The last evidence commit" is NOT a window anchor — on a
+  first audit the most recent evidence row is usually written *at* HEAD, which would make the
+  window empty and silently skip the entire history. When no stamp or boundary exists, audit
+  everything and say so.
 - **Classify every commit in the window:** MAINTENANCE (merges, reverts, lockfiles,
   formatting, CI config, docs-only) · BOOKKEEPING (SSOT ticks, evidence, stamps) ·
   SUBSTANTIVE · UNASSESSABLE. Map SUBSTANTIVE commits to the WORK MAP; **only unmapped
