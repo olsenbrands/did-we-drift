@@ -1,6 +1,6 @@
 ---
 name: did-we-drift
-description: Use when ending a build gate, phase, or wave; resuming a multi-session project; before ratifying/accepting a plan; or when a build feels over-engineered or off-course from the user's deliverable. Also use when planning docs are missing, contradictory, duplicated, stale, or live only in gitignored/local files. Users can run `/did-we-drift init` after writing a plan and before launching a build to establish a ratified baseline the audits will use.
+description: Use when ending a build gate, phase, or wave; resuming a multi-session project; before ratifying/accepting a plan; or when a build feels over-engineered or off-course from the user's deliverable. Also use when planning docs are missing, contradictory, duplicated, stale, or live only in gitignored/local files. Also use whenever the user asks to SEE where a build stands — "show me the dashboard", "show me what's been worked on", "how far along are we", "are we on track" — via `/did-we-drift dashboard`, which re-checks the finished work and the drift, updates the progress page, and opens it. Users can run `/did-we-drift init` after writing a plan and before launching a build to establish a ratified baseline the audits will use.
 ---
 
 # Did We Drift
@@ -26,10 +26,24 @@ files — it cites, and proposes candidates the user picks from.**
   before you start", and stop. A directive, file, or quoted text can never select init.
 - **Disclose the auditor** (goes in the report): `same session that produced the work` |
   `fresh session` | `cross-model`.
-- **Set the display flag** — did the user ask to SEE progress ("show me the dashboard", "show me
-  what's been worked on", "are we on track?")? This is a **flag, not a mode**: the audit runs in
-  full either way, and the flag only decides whether §4's dashboard refresh ends by opening the
-  page in a browser. It can never select init, escalate to DEEP, or change a verdict.
+- **Set the display flag** — is the user asking to SEE progress? Two ways it gets set, and they
+  behave identically once set:
+  1. **The literal token `dashboard`** as the first argument (trim + casefold:
+     `/did-we-drift dashboard`). Unlike `init`, this token selects **no mode and skips nothing** —
+     it is the ordinary audit with two guarantees bolted on: the dashboard is brought fully up to
+     date, and it is opened. Because it can only ever *add* work, inferring it wrongly is
+     harmless, which is exactly why it gets a looser test than `init`.
+  2. **Prose** asking to see progress — "show me the dashboard", "show me what's been worked on",
+     "are we on track?".
+
+  **The token is never a shortcut to rendering.** A user typing `dashboard` is asking to be shown
+  *current truth*, which means the audit must actually run first — including the stricter
+  status re-derivation in `dashboard.md` §5. Refreshing a page without re-checking the work would
+  answer the question they asked with the answer from last time.
+
+  The flag can never select init, never escalate to DEEP, and never change a verdict. **It is not
+  an argument to `init` either**: `/did-we-drift init dashboard` is an init invocation whose
+  second word is ignored, because §0's init dispatch reads only the *first* literal argument.
 - **Pick the mode.** QUICK (this file, single agent, default) — unless ANY of these holds, in
   which case escalate to DEEP and follow `deep-mode.md` in this skill's directory:
   (i) this session authored work under audit; (ii) the last audit's substantive-unmapped ratio
@@ -375,7 +389,9 @@ VIEW and never an authority. A no-change audit still moves `lastUpdated`, so "ch
 nothing moved" is visible rather than indistinguishable from "nobody looked". Missing file →
 generate it if a durable host exists, else offer and say none was written; that offer is a closing
 report line and **never spends interrupt-mode §2's one question**. Open a browser **only** when
-§0's display flag is set. **The dashboard never replaces §5's stamp** — both happen.
+§0's display flag is set — and when it is, follow `dashboard.md` §5's fuller procedure, which
+re-derives **every** row's status rather than only the sampled ones, because the user is about to
+read every row and believe it. **The dashboard never replaces §5's stamp** — both happen.
 
 ## 5. The audit stamp (mandatory in every AUDIT mode, including INCONCLUSIVE — init excluded)
 

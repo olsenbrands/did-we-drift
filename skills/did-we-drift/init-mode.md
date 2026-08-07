@@ -207,10 +207,11 @@ further edit. **No AUDIT LOG line is written and no verdict is printed** — ini
 4. The instruction: *"Run `/did-we-drift` from a fresh session — a different model if you have
    one — to independently confirm. My own claims about this basis are unverified by
    construction."*
-5. The dashboard's path, and what it is: *"`<path>` shows what we planned beside what we built,
-   in plain language. Open it any time, or say 'show me the dashboard'. It is a picture of the
-   plan, not the plan — `<SSOT>` still decides."* Init opens it in the browser **only if the user
-   asks** (SKILL.md §0's display flag).
+5. The dashboard's path, and how to get it refreshed: *"`<path>` shows what we planned beside
+   what we built, in plain language. Run `/did-we-drift dashboard` any time — it re-checks the
+   finished work and the drift, updates the page, and opens it. It is a picture of the plan, not
+   the plan; `<SSOT>` still decides."* Init opens it **only if the user asks** (SKILL.md §0's
+   display flag).
 
 ## Common mistakes (init-specific)
 

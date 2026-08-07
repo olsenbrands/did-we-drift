@@ -14,8 +14,10 @@ straight whether you're on course — with the specific commit hashes and file l
 claim, so you can check its work.
 
 It also keeps a **plain-language dashboard** of the answer: one page showing what you planned
-beside what actually got built, written for someone who watched none of the work. Say *"show me
-the dashboard"* any time. [See what it looks like.](#seeing-it-the-dashboard)
+beside what actually got built, written for someone who watched none of the work. Type
+**`/did-we-drift dashboard`** whenever you want to see where things really stand — the agent
+re-checks the finished work and the drift *before* showing you anything, then opens the page.
+[See what it looks like.](#seeing-it-the-dashboard)
 
 **Who it's for:** anyone who lets AI agents write code over long stretches without watching every
 step. Solo builders running overnight sessions, teams handing a project between sessions or
@@ -239,8 +241,19 @@ A verdict in a terminal is precise and easy to skim past. So every audit also wr
 self-contained page — `docs/drift-dashboard.html` — that answers "how's it going?" in about ten
 seconds. Open it by double-clicking. No server, no build step, no network.
 
-Ask *"show me the dashboard"* and the skill refreshes it and opens it. Any other audit updates it
-silently.
+```
+/did-we-drift dashboard
+```
+
+That command is the point of the whole feature. It doesn't just re-render the page — it gives the
+agent a moment to **go and check** before showing you anything: it runs the full audit, re-derives
+**every** step's status against your plan (a routine audit only samples a few), re-runs the
+evidence it can actually run, updates the page, and then opens it. Plain English also works —
+*"show me the dashboard"*, *"how far along are we?"*, *"are we on track?"*
+
+So you get the current answer, not last week's. A step that was green but whose proof no longer
+holds up comes back as *In progress* with the reason — it is never left green just because it was
+green last time. Any audit you didn't ask to see updates the page silently and opens nothing.
 
 ```
 Your cockpit redesign is 43% built
@@ -397,11 +410,25 @@ or newer).
 
 ## When it triggers
 
-Invoke it directly, or let your agent reach for it — the skill fires on: ending a build
+Invoke it directly (`/did-we-drift`, or `/did-we-drift dashboard` to be shown the result), or let your agent reach for it — the skill fires on: ending a build
 gate/phase/wave · resuming a multi-session project · before ratifying or accepting a plan · a
 build that feels over-engineered · planning docs that are missing, contradictory, duplicated, or
 living only in gitignored/local files. It pairs naturally with a plan document that names the
 skill in its own cadence section — then every future session re-arms the check unprompted.
+
+## New in v3.4
+
+- **`/did-we-drift dashboard`** — one command for "show me where this really stands." It is
+  deliberately *not* a render shortcut: the agent runs the full audit first, re-derives **every**
+  step's status rather than the handful a routine audit samples, re-runs whatever evidence can be
+  run, refreshes the page, verifies it, opens it — then still prints the report and writes the
+  audit-log line. A step whose proof no longer resolves drops out of "Built" with the reason
+  attached, instead of coasting on last week's tick.
+- **It answers in the conversation too**, not only in a browser tab: two or three sentences on
+  what moved since you last looked and what needs a decision from you.
+- **Careful about the awkward cases** — no dashboard yet, no admissible plan (it refuses to render
+  a progress page over a plan it just rejected), an unattended `/loop` run (refresh, never open a
+  window at an empty chair), and a serious finding (you hear about it before the tab opens).
 
 ## New in v3.3
 

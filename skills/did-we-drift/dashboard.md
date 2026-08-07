@@ -30,7 +30,7 @@ Non-negotiable, and it is what keeps the dashboard from failing the skill's own 
 | Ordinary audit (QUICK or DEEP), dashboard exists | After the verdict is computed, refresh `DASHBOARD_DATA` (§2). Silent — no browser. |
 | Ordinary audit, dashboard missing, durable host exists | Generate it from the current audit (§4 covers the never-ran-init case). Say so in one report line. |
 | Ordinary audit, dashboard missing, no durable host | Do not create directories. Ask where it should live; report that none was written. |
-| The user asks to SEE progress | Refresh first, **then** `open <path>` (macOS) — §5. |
+| **`/did-we-drift dashboard`**, or the user asks to see progress in prose | The full §5 procedure: audit, re-derive **every** row's status, re-run what is runnable, refresh, check, **open**, then report and stamp. |
 | `Baseline: NONE` | See §6. The planned column has no honest source; do not invent one. |
 
 **Write authorization.** Generating and refreshing the dashboard is on SKILL.md §5's allow-list
@@ -309,17 +309,65 @@ then build the page from what the audit actually resolved.
 - `baseline.baselineNote` carries the PROVISIONAL wording, and `verdict.corrections` leads with
   the ratification ask.
 
-## 5. Showing it on request
+## 5. `/did-we-drift dashboard` — check the work, then show it
 
-The user asking to *see* progress — "show me the dashboard", "show me what's been worked on",
-"are we on track?" — is a **display flag, not a mode**. The audit runs in full and unchanged;
-the only difference is the last step:
+The user typing `dashboard` (or asking in prose: "show me the dashboard", "show me what's been
+worked on", "are we on track?") is asking one thing: **show me where this really stands, now.**
+That is a request for a fresh answer, not a re-render of the last one. It is a display flag, not
+a mode — nothing is skipped, and the audit's semantics are untouched.
 
-1. run the audit, 2. refresh `DASHBOARD_DATA`, 3. `open <path>` (macOS; `xdg-open` on Linux,
-`start` on Windows), 4. still print the §4 report and write the §5 stamp.
+Run these in order. Do not shortcut to step 5.
 
-An audit with no such request refreshes the file **silently** — never open a browser at someone
-who did not ask for one. Offering to regenerate a missing dashboard is a closing line in the
+**1. Run the ordinary audit, in full.** Window resolution, commit classification, work-map
+mapping, basis-history check, verdict — SKILL.md §3b and §4, unchanged. The token adds work; it
+never removes any.
+
+**2. Re-derive EVERY row's status, not just the sampled ones.** This is the "double check" the
+user is paying for, and it is the one place a dashboard request is stricter than a routine audit.
+§3b samples three items by risk; here you walk the whole list, because the user is about to look
+at every row and believe it. For each row, re-read the box and the evidence slot in the SSOT and
+re-apply §2a. Cheap and bounded — it is reading a tracker, not re-running a build.
+
+Watch for the four things that rot quietly between audits:
+- a row still `built` whose evidence no longer resolves (file moved, commit rewritten, test gone);
+- a row still `not_started` that quietly began — the SSOT now carries a dated open marker, or
+  commits in the window map to it;
+- a row still `partial` that actually finished — box ticked and evidence filled since last time;
+- a row whose plan text changed, so the page is describing a step that no longer exists.
+
+**3. Re-run the evidence you can actually run.** Anything runnable behind a `built` row gets run,
+not read (§3b). What is only inspectable comes back `EVIDENCE: UNVERIFIABLE` and the row drops to
+`partial` with the reason in `howItWent`. **A row that cannot be re-verified is never left green
+just because it was green last week.**
+
+**4. Refresh `DASHBOARD_DATA` completely** (§2): statuses, evidence, timings and build history,
+what changed since the last stamp, waiting-on-you, the verdict panel and its severity, the
+corrections, the stats, the source links, and `lastUpdated`. Then **run the checker** (§9) —
+including `--ssot`, since you have the plan paths in hand from step 1. A dashboard you are about
+to put in front of someone is exactly the one worth verifying.
+
+**5. Open it.** `open <path>` on macOS; `xdg-open` on Linux; `start` on Windows.
+
+**6. Still print the §4 report and write the §5 stamp.** The page is the view; the report and the
+stamp are the audit. Opening a browser never replaces either, and "I showed you the dashboard" is
+not an audit trail.
+
+Then say, in two or three sentences, **what changed since they last looked and what needs them** —
+the same content as the page's top two panels. A user who asked to be shown something should not
+have to read the whole page to learn the one thing that moved.
+
+### The cases that need care
+
+| Situation | What to do |
+|---|---|
+| **No dashboard exists yet** | Generate it (§4's never-ran-init path) and open it. The user explicitly asked to see it, so this is not the silent-refresh case. No durable host → ask where it should live; do not invent a directory. |
+| **`Baseline: NONE`** | Do not fabricate a page to satisfy the request. If one exists, refresh it to the quarantined state (§6) and open it — that IS the honest answer to "where do we stand". If none exists, explain in plain words that there is no agreed finish line to measure against, and offer `/did-we-drift init` or the recovery pass. Never render a progress page over an inadmissible plan. |
+| **Unattended** (inside a `/loop` or `/goal`, no human this turn) | Refresh, **never open a browser** — there is nobody at the screen and a stray window is a real annoyance on a shared machine. Note in the report that the page was updated and where it is. |
+| **Nothing changed since the last audit** | Still refresh, still open. "I checked, and nothing moved" is a legitimate answer to the question, and §4's no-change suppression governs the *report's* length, never whether the page opens. |
+| **The audit turns up a MATERIAL or CAPTURED problem** | Handle the interrupt first (interrupt-mode.md), then refresh and open. The user gets the bad news in the conversation, not only in a browser tab they might close. |
+
+**An audit nobody asked to see refreshes the file silently.** Never open a browser at someone who
+only asked for an audit. Offering to regenerate a missing dashboard is a closing line in the
 report; it **never spends interrupt-mode §2's one question**, which belongs to safety corrections.
 
 ## 6. When there is no admissible basis
@@ -447,5 +495,10 @@ has never seen the project follow every word outside the technical panels?
 - Paraphrasing the deliverable sentence to make it fit the layout.
 - Rewriting the page's HTML or CSS during a refresh instead of only `DASHBOARD_DATA`.
 - Opening a browser during an ordinary audit nobody asked to see.
+- **Treating `/did-we-drift dashboard` as "render the page".** It means *check the work, then show
+  me* — the audit runs first, and every row's status is re-derived, not just the sampled ones.
+  Re-opening yesterday's numbers answers a question the user did not ask.
+- Leaving a row green because it was green last time, when its evidence no longer resolves.
+- Opening a browser on an unattended run, where nobody is at the screen.
 - Creating a `docs/` directory to host it without asking.
 - Writing "this file wins" anywhere on the page.
