@@ -31,9 +31,24 @@ Work that predates ratification, dispositioned — never graded. One line each:
 - <capability group> · <commits> · RETAIN | PARK | REVERT | UNKNOWN · <one-line why>
 
 ## 3. STAGES
-Per stage: **WHY** (which deliverable step it unblocks) · **DONE-WHEN** (a command or
-observable) · **budget** (S/M/L) · `- [ ]` box · **EVIDENCE:** (filled by the same
-commit-series that finishes the work — a tick without evidence is invalid).
+Per stage: **WHY** (which deliverable step it unblocks) · **IN PLAIN WORDS** (see below) ·
+**DONE-WHEN** (a command or observable) · **budget** (S/M/L) · `- [ ]` box · **EVIDENCE:**
+(filled by the same commit-series that finishes the work — a tick without evidence is invalid).
+
+**IN PLAIN WORDS** — two sentences, no jargon, no acronyms, no stage numbers: what this step
+gives a person, and what was broken or missing before it. Written once, here, so every future
+report and dashboard quotes the same words instead of re-inventing them. If it can't be said
+without jargon, the stage is not yet understood.
+
+**Completion record** — five slots per stage, empty until the work finishes, then filled by the
+same commit-series that ticks the box. Empty ones read as `not recorded`; never estimate them.
+A tick with none of these filled is the same record defect as a tick with no evidence.
+```
+STARTED: <date time>   FINISHED: <date time>   REVIEWS: <n> rounds
+BUGS: <n> found, <n> fixed   SKIPPED: <what and why | none>
+```
+`SKIPPED` is not optional politeness: a stage that shipped with something dropped must say so on
+the row that claims to be done.
 
 ## 4. PARKED
 Work that must not start without a new dated user line here.
@@ -45,6 +60,8 @@ machinery beyond the agreed toolchain; (d) a stage past 2× budget without a sto
 every stage and at session start; verdict vocabulary ON TRACK / DRIFTED (MINOR|MATERIAL|CAPTURED)
 / INCONCLUSIVE / BLOCKED, reported alongside a baseline status of RATIFIED | PROVISIONAL | NONE;
 recovery = smallest edit (revert | park | legitimize with task + why), never a new document.
+Plain-language view: `docs/drift-dashboard.html` is refreshed by each audit. It is a picture of
+this file, never an authority — if the two disagree, this file is right and the picture is fixed.
 
 ## 6. OPERATING RULES
 One writer at a time · review rounds capped (state the cap) · CI (or the project's test gate)

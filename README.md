@@ -13,6 +13,10 @@ wanted, reads the actual commits to find out what got built, compares the two, a
 straight whether you're on course — with the specific commit hashes and file lines behind every
 claim, so you can check its work.
 
+It also keeps a **plain-language dashboard** of the answer: one page showing what you planned
+beside what actually got built, written for someone who watched none of the work. Say *"show me
+the dashboard"* any time. [See what it looks like.](#seeing-it-the-dashboard)
+
 **Who it's for:** anyone who lets AI agents write code over long stretches without watching every
 step. Solo builders running overnight sessions, teams handing a project between sessions or
 between people, and anyone who's opened a repo after a few days away and thought "wait, why did
@@ -229,6 +233,61 @@ Each run appends one line to your plan's `## AUDIT LOG`, so the next check knows
 and the **trend** becomes visible. Two "on track" verdicts with a rising unmapped ratio is the
 earliest drift signal a single verdict can't show you.
 
+## Seeing it: the dashboard
+
+A verdict in a terminal is precise and easy to skim past. So every audit also writes a single
+self-contained page — `docs/drift-dashboard.html` — that answers "how's it going?" in about ten
+seconds. Open it by double-clicking. No server, no build step, no network.
+
+Ask *"show me the dashboard"* and the skill refreshes it and opens it. Any other audit updates it
+silently.
+
+```
+Your cockpit redesign is 43% built
+Three of seven steps are done. One is being worked on now.
+████████████░░░░░░░░░░░░░░  43% built — 3 of 7 steps finished
+
+WHAT WE PLANNED                        WHAT WE BUILT
+Make your approve-or-deny answers      ✓ Built
+actually reach your assistant.         When:  Aug 4, 9:12am → Aug 6, 8:47am · took 2 days
+Before this, you could tap Approve     How it went: Three review rounds. Two bugs found
+and nothing would happen.              and fixed. One thing deliberately left out: …
+▸ Want the technical specs?            Proof: Went out to real users in version beta.17
+```
+
+**Written for the person paying for the work, not the person who did it.** Every step says what
+it gives a real person and what was broken before it; the acronyms, file paths and commit hashes
+live behind *"Want the technical specs?"* Internal stage IDs appear only as small muted badges.
+
+- **A completion meter that can't lie.** The percentage is computed from the row statuses at
+  render time — there is no number to set by hand, so it can never disagree with the list beneath
+  it. Steps count equally and the raw count always shows alongside ("43% — 3 of 7").
+- **Nothing is marked done on momentum.** Status comes from the evidence slots. A ticked box whose
+  evidence doesn't hold up shows as *In progress* with the reason, not as Built.
+- **Missing facts say "not recorded"** instead of vanishing, so a thin record never passes for a
+  clean one. Anything a step quietly skipped is stated on the row that claims to be finished.
+- **What changed since you last looked**, and **what's waiting on you** — the dated decisions
+  blocking the build, written as the question you have to answer.
+- **A bad verdict looks bad.** The panel takes its colour from the verdict; "off course" is never
+  rendered in the same calm tone as "on track". Colour never carries meaning alone — every state
+  is also an icon and a word.
+- **Every source document is one click away**, with its full path shown for copying and a
+  relative link so the page still works on someone else's machine.
+
+**It is a view, never a second authority.** It makes no claim your plan doesn't already make, is
+never cited as a basis, and if the two ever disagree the plan wins and the page is corrected. When
+the audit finds no admissible plan, the meter is *hidden* rather than recoloured — a percentage
+computed against a plan that was just ruled inadmissible is a lie, however pretty.
+
+A bundled checker (`verify-dashboard.mjs`) runs on every generate and refresh: it proves the page
+renders, escapes its inputs, keeps jargon out of the default view, and — given your plan file —
+that the quoted goal appears **verbatim** in it and every step on the page actually exists there.
+It runs the page in a sandboxed process with no filesystem access, because dashboards live in
+repos that agents wrote. A green run means the page renders and matches the plan text it cites;
+it does *not* mean the statuses are true, and it says so.
+
+Mechanics: [`dashboard.md`](skills/did-we-drift/dashboard.md).
+
 ## Inside long autonomous runs
 
 Add one line to your loop or goal directive: *"First run the did-we-drift skill and obey its
@@ -332,7 +391,9 @@ Install this skill globally on my machine: https://github.com/olsenbrands/did-we
 ```
 
 Claude clones this repo and copies `skills/did-we-drift/` to `~/.claude/skills/did-we-drift/`.
-Six files, no scripts, no dependencies.
+Nine files. No dependencies and nothing to build — the one script it ships is the dashboard
+checker, which uses only Node's standard library (Node 20+; the sandbox it renders in needs 20.6
+or newer).
 
 ## When it triggers
 
@@ -341,6 +402,30 @@ gate/phase/wave · resuming a multi-session project · before ratifying or accep
 build that feels over-engineered · planning docs that are missing, contradictory, duplicated, or
 living only in gitignored/local files. It pairs naturally with a plan document that names the
 skill in its own cadence section — then every future session re-arms the check unprompted.
+
+## New in v3.3
+
+- **A dashboard you can actually read** (above) — one self-contained page per project showing
+  planned beside built, in plain language, with a completion meter computed from the rows so it
+  can never overstate them. Generated at `init`, refreshed by every audit, opened on request.
+- **Two voices per step.** What it gives a real person by default; every acronym, path and commit
+  hash behind a *"Want the technical specs?"* disclosure. The plain wording is written **once**
+  into the plan (a new `IN PLAIN WORDS` field per stage) so it can't drift between reports.
+- **Build history worth reading.** Start and finish times derived from commit dates, plus five new
+  stage slots — reviews, bugs, and anything **skipped** — filled by the commit series that
+  finishes the work. Anything absent renders as `not recorded`; nothing is ever estimated.
+- **A verdict that looks like what it says.** Verdict panels take their colour from the verdict,
+  so "off course" stops rendering in the same calm tone as "on track".
+- **The no-plan state is honest.** When no admissible plan exists, the meter is hidden and the
+  goal is relabelled — the page cannot show a completion percentage for a plan it just rejected.
+- **A bundled checker with real teeth** — with `--ssot` it proves the quoted goal appears verbatim
+  in your plan and that every step on the page exists there, so an invented dashboard fails. It
+  runs untrusted page code in a sandboxed process with no filesystem access.
+- **Audit-rule fixes found by adversarial cross-model review:** the ratified path now runs the
+  authorship test (an agent-written plan can no longer pass as user-ratified on document quality
+  alone); scope movement is judged by the quote fingerprint, never a file blob, so routine
+  bookkeeping can't trigger the strongest stop verdict; write permission is stated in exactly one
+  place; and the verdict grammar now has a rule that generates every legal combination.
 
 ## New in v3.2
 

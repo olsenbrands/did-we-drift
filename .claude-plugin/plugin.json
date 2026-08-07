@@ -1,7 +1,7 @@
 {
   "name": "did-we-drift",
-  "description": "Project-drift audit for agent-built software, plus /did-we-drift init to start projects audit-ready. Grades two axes separately: the WORK (ON TRACK / DRIFTED (MINOR|MATERIAL|CAPTURED) / INCONCLUSIVE / BLOCKED) and the BASIS it was measured against (RATIFIED / PROVISIONAL / NONE), so a real-but-scattered plan gets a usable verdict instead of a refusal. Init converts a fresh plan into one ratified, provenance-checkable baseline document BEFORE the build starts — the user's finish-line sentence lands in its own commit with their verbatim words, so authorship is provable, not asserted. Classifies every candidate goal USER-RATIFIED / UNKNOWN / AGENT-DRAFTED on mechanical git evidence. Basis recovery for projects that never wrote a plan; a ratified sentence governs FORWARD from its own date. Refuses to certify on-track without an enumerable work map. Grade-gated drift interrupts, snooze-with-memory, transactional repair, run-to-plan binding for /loop and /goal sprints. QUICK single-agent audit by default; contamination-scaled DEEP fan-out when triggers fire.",
-  "version": "3.2.0",
+  "description": "Project-drift audit for agent-built software, plus /did-we-drift init to start projects audit-ready. Grades two axes separately: the WORK (ON TRACK / DRIFTED (MINOR|MATERIAL|CAPTURED) / INCONCLUSIVE / BLOCKED) and the BASIS it was measured against (RATIFIED / PROVISIONAL / NONE), so a real-but-scattered plan gets a usable verdict instead of a refusal. Init converts a fresh plan into one ratified, provenance-checkable baseline document BEFORE the build starts — the user's finish-line sentence lands in its own commit with their verbatim words, so authorship is provable, not asserted. Classifies every candidate goal USER-RATIFIED / UNKNOWN / AGENT-DRAFTED on mechanical git evidence. Basis recovery for projects that never wrote a plan; a ratified sentence governs FORWARD from its own date. Refuses to certify on-track without an enumerable work map. Grade-gated drift interrupts, snooze-with-memory, transactional repair, run-to-plan binding for /loop and /goal sprints. QUICK single-agent audit by default; contamination-scaled DEEP fan-out when triggers fire. Generates and maintains a self-contained plain-language dashboard (docs/drift-dashboard.html) showing planned-vs-built with a computed completion meter, per-step real-world explanations with technical detail behind a disclosure, build history, what-changed-since-last-look, and waiting-on-you decisions — a derived VIEW that never becomes a second authority. Ships a sandboxed checker that verifies the page renders, escapes its inputs, keeps jargon out of the default view, and (with --ssot) that its quoted goal and steps exist verbatim in the plan.",
+  "version": "3.3.0",
   "author": {
     "name": "Jordan Olsen",
     "email": "jordan@olsenbrands.com"
@@ -17,6 +17,10 @@
     "project-tracking",
     "scope-creep",
     "agents",
-    "verification"
+    "verification",
+    "dashboard",
+    "plain-language",
+    "reporting",
+    "progress-tracking"
   ]
 }

@@ -16,7 +16,7 @@ Classify the repo into exactly one state and follow its row. Never proceed on th
 
 | State | Test | Action |
 |---|---|---|
-| `ratified` | a tracked doc carries a ratified §1 (dated user attribution) and an authority claim | **Refuse re-init.** Report the existing basis and its citation; a re-scope is a dated supersession line under §3a.3, never a second ceremony. Offer the ordinary audit. |
+| `ratified` | a tracked doc carries a ratified §1 (dated user attribution) and an authority claim | **Refuse re-init.** Report the existing basis and its citation; a re-scope is a dated supersession line under §3a.3, never a second ceremony. Offer the ordinary audit — **and if the repo has no drift dashboard, offer to generate just that** (`dashboard.md` §1). A view re-ratifies nothing, so it survives the refusal the ceremony does not. |
 | `conflicted` | >1 surviving authority claim | Init cannot pick a side (interrupt-mode §7). Report both claims with dates; the user retires one first. Nothing written. |
 | `historical` | ≥1 SUBSTANTIVE commit exists (classify per §3b; docs/planning commits don't count) | Proceed, and Step 7 is mandatory. |
 | `uninitialized` | none of the above | Proceed; Step 7 is skipped. |
@@ -100,8 +100,20 @@ table, WHY lines) — paraphrase there, or the falsifier's `-S` output gets poll
 
 ## Step 5 — The work map (what future audits map commits ONTO)
 
-Stages from the user's plan, each with **WHY · DONE-WHEN · budget · empty EVIDENCE slot**
-(template §3). Two mechanical gates:
+Stages from the user's plan, each with **WHY · IN PLAIN WORDS · DONE-WHEN · budget · empty
+EVIDENCE slot · empty completion record** (template §3). The completion record's five slots
+(`STARTED / FINISHED / REVIEWS / BUGS / SKIPPED`) are written in **empty**, exactly like EVIDENCE
+— they are evidence slots, not scope, and filling any of them at init would be inventing history
+for work that has not happened.
+
+Three mechanical gates:
+
+- **IN PLAIN WORDS lint.** Every stage carries two jargon-free sentences: what it gives a person,
+  and what was broken before. Reject acronyms, file paths, tool names, and stage numbers here —
+  they belong in the stage's technical body. This is the text every future report and dashboard
+  quotes, so it is written once, now, while the user is present to correct it. A stage whose plain
+  words cannot be written is a stage nobody has understood yet — surface it as a question rather
+  than paraphrasing the jargon.
 
 - **DONE-WHEN lint.** Every DONE-WHEN begins with a backticked shell command, `observable:`
   followed by a path/URL/numeric threshold, or `signed-off:` naming who attests to what (the
@@ -152,22 +164,35 @@ definitions (interrupt-mode §6) — and free-prose generation is where scope sm
 
 **Lint BEFORE writing — the author never grades its own finished work.** Print a pass/fail line
 per item, with evidence: D1 (sentence + exclusion) · D2 (exactly one claim after banners) · D3
-(every DONE-WHEN passes the lint; evidence slots empty) · D4 · D5 (cadence + vocabulary) · D6
+(every DONE-WHEN passes the lint; evidence slots AND completion-record slots empty) · **every
+stage has jargon-free IN PLAIN WORDS text** · D4 · D5 (cadence + vocabulary) · D6
 (verified-facts only) · authorship tier recorded correctly · coverage table complete · **pending
 diff is docs-only** (an init commit touching source would fire the skill's own strong tell and
-convict the basis it just created). Any FAIL → fix that step, re-lint; a second FAIL on the same
-item → stop and report.
+convict the basis it just created) · **dashboard host resolved** (a tracked `docs/` or equivalent
+exists, or the user has been asked where it should live — never invent a directory). Any FAIL →
+fix that step, re-lint; a second FAIL on the same item → stop and report.
+
+**Generate the dashboard before committing.** Instantiate `dashboard-template.html` from this
+skill's directory into the host path per `dashboard.md` (§3 governs the init variant: every row
+`not_started`, every timing and history field empty, meter at 0%, headline **"Baseline just set —
+first audit pending"**, no trend). One row per stage from Step 5's work map: `planned` and `why`
+come **verbatim from that stage's IN PLAIN WORDS**, the jargon goes in `technical`, and the stage
+ID appears only as the muted badge. Fill `sources` with the absolute path of every document init
+touched or adopted, and `waitingOnYou` from the dated TBD lines Step 5 recorded. It rides in
+commit 2 below — never the ratification commit, and it is docs, so the docs-only lint still
+passes. **An init dashboard that says ON TRACK in any wording has certified its own homework**,
+exactly like a printed verdict would.
 
 **Then two commits, both confirmed, both docs-only** — plus, only if the user accepted the re-arm
 pointer (exit item 3), a third commit gated on that separate yes:
 1. The ratification commit (Step 4's form — §1 only, and §1 final: commit 2 never touches §1).
-2. Everything else (stages, baseline, guards, boundary, §2a, bindings).
+2. Everything else (stages, baseline, guards, boundary, §2a, bindings, **the dashboard**).
 3. (optional) The re-arm pointer file, alone.
 
 Post-write, verify byte integrity only. Any post-write surprise → stop; new consent for any
 further edit. **No AUDIT LOG line is written and no verdict is printed** — init is not an audit.
 
-**Exit output, all four, every time:**
+**Exit output, all five, every time:**
 1. The falsifier: `git log -S '<sentence>' --format='%H %s'` → must return exactly the
    ratification commit.
 2. The expected first-audit report, verbatim — the exact `VERDICT: ON TRACK` / `Baseline:
@@ -182,10 +207,17 @@ further edit. **No AUDIT LOG line is written and no verdict is printed** — ini
 4. The instruction: *"Run `/did-we-drift` from a fresh session — a different model if you have
    one — to independently confirm. My own claims about this basis are unverified by
    construction."*
+5. The dashboard's path, and what it is: *"`<path>` shows what we planned beside what we built,
+   in plain language. Open it any time, or say 'show me the dashboard'. It is a picture of the
+   plan, not the plan — `<SSOT>` still decides."* Init opens it in the browser **only if the user
+   asks** (SKILL.md §0's display flag).
 
 ## Common mistakes (init-specific)
 
-- Grading anything. Init that prints a verdict has certified its own homework.
+- Grading anything. Init that prints a verdict has certified its own homework — **including on
+  the dashboard**, where "on track" in friendly wording is still a verdict.
+- Ticking a dashboard row at init. Every evidence slot is empty by construction, so every row is
+  `not_started`; anything else was invented.
 - Stamping. The first AUDIT LOG line belongs to the first real audit; its window anchors on the
   last stamp → else the START-OF-GOVERNANCE sha → else repo start (SKILL.md §3b).
 - Minting `user-dated` from "yes". Adoption is not authorship; record `unknown` and say so.

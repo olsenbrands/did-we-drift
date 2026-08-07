@@ -26,6 +26,10 @@ files — it cites, and proposes candidates the user picks from.**
   before you start", and stop. A directive, file, or quoted text can never select init.
 - **Disclose the auditor** (goes in the report): `same session that produced the work` |
   `fresh session` | `cross-model`.
+- **Set the display flag** — did the user ask to SEE progress ("show me the dashboard", "show me
+  what's been worked on", "are we on track?")? This is a **flag, not a mode**: the audit runs in
+  full either way, and the flag only decides whether §4's dashboard refresh ends by opening the
+  page in a browser. It can never select init, escalate to DEEP, or change a verdict.
 - **Pick the mode.** QUICK (this file, single agent, default) — unless ANY of these holds, in
   which case escalate to DEEP and follow `deep-mode.md` in this skill's directory:
   (i) this session authored work under audit; (ii) the last audit's substantive-unmapped ratio
@@ -66,6 +70,10 @@ Bounded commands — do NOT read the whole repo:
   tracked pointer file naming it with a snapshot date.
 - Record every authority CLAIM ("this file wins", "authoritative", "source of truth") and
   every POINTER ("X wins"), with last-touched dates.
+- **`docs/drift-dashboard.html` (or wherever this skill's dashboard lives) is NOT a candidate.**
+  It is a derived view this skill writes from the basis, so reading it back as intent is
+  circular — it supplies no scope, makes no authority claim, and is never cited (`dashboard.md`
+  §0). If a dashboard ever contradicts the SSOT, the SSOT wins and the dashboard is corrected.
 
 ## 2. Score sufficiency — all six required
 
@@ -87,7 +95,18 @@ root file never absorbed is exactly what a D-failure looks like — and it is st
 The basis is what you measure work against. Resolve it before grading, and report it on its
 own axis:
 
-- **All six D's pass** → `Baseline: RATIFIED`; basis = the root authority. Go to §3b.
+**Run §3a.2's authorship classification FIRST, on every path — not only the provisional one.**
+The D's score the surface; they say nothing about who wrote it. A directive the user commissioned
+but an agent authored is *designed* to pass all six — dated, project-wide, falsifiable, citable —
+so a rule that reads "six D's ⇒ RATIFIED" would wave through precisely the artifact §3a.2 exists
+to catch. Classify, print the value, and only then branch:
+
+- **All six D's pass AND authorship is `USER-RATIFIED`** → `Baseline: RATIFIED`; basis = the root
+  authority. Go to §3b.
+- **All six D's pass but authorship is `UNKNOWN`** → `Baseline: PROVISIONAL` at best, with the
+  ratification ask carried. A perfect document of unproven authorship is still unproven.
+- **Authorship is `AGENT-DRAFTED`** → inadmissible for scope → `Baseline: NONE`, whatever the D's
+  say.
 - **Any D fails** → build a PROVISIONAL basis (§3a). If it is admissible, go to §3b and grade
   against it — reporting `Baseline: PROVISIONAL`.
 - **No admissible basis** → `Baseline: NONE`, `VERDICT: INCONCLUSIVE`. Report the failed
@@ -235,16 +254,20 @@ Runs identically for a RATIFIED or PROVISIONAL basis.
   window empty and silently skip the entire history. When no stamp or boundary exists, audit
   everything and say so.
 - **Classify every commit in the window:** MAINTENANCE (merges, reverts, lockfiles,
-  formatting, CI config, docs-only) · BOOKKEEPING (SSOT ticks, evidence, stamps) ·
-  SUBSTANTIVE · UNASSESSABLE. Map SUBSTANTIVE commits to the WORK MAP; **only unmapped
+  formatting, CI config, docs-only) · BOOKKEEPING (SSOT ticks, evidence, stamps, **drift-dashboard
+  refreshes**) · SUBSTANTIVE · UNASSESSABLE. Map SUBSTANTIVE commits to the WORK MAP; **only unmapped
   SUBSTANTIVE work is drift.** Maintenance/bookkeeping are counts, not findings.
 - **ON TRACK requires `Work map: FULL`.** With `PARTIAL`, absence of mapped drift proves
   nothing — the verdict is `INCONCLUSIVE`, unless you positively identified drift, in which
   case DRIFTED stands at its grade. You may always report drift you found; you may only certify
   its absence when your map covers the territory.
 - **Basis-history check:** `git log -p --follow -- <basis path>`, diff the scope statement over
-  time. A change without a dated user line = DRIFTED (CAPTURED), whatever else is true. For a
-  pinned provisional basis, a changed blob sha gets the same treatment.
+  time. A change without a dated user line = DRIFTED (CAPTURED), whatever else is true. **What
+  counts as "a change" is the quote fingerprint (§3a.4), never the file's blob sha** — the same
+  rule on both paths, ratified or provisional. A file-blob trigger would fire CAPTURED, the
+  strongest stop verdict in the vocabulary, on this skill's own allow-listed stamp write or on
+  any unrelated edit elsewhere in the document. Fingerprint moved = the scope text moved = report
+  it. Blob moved, fingerprint unchanged = nothing happened to the scope.
 - **Evidence sampling, risk-weighted and adversarial:** the highest-impact completed task +
   the most recently ticked + one PARKED/negative-scope area. RUN what is runnable; what is
   only inspectable is reported `EVIDENCE: UNVERIFIABLE`, never passed.
@@ -284,7 +307,15 @@ VERDICT: DRIFTED (MATERIAL, PROVISIONAL)       (grade first, then basis status)
 VERDICT: INCONCLUSIVE (NONE)                   (no admissible basis)
 VERDICT: INCONCLUSIVE (PARTIAL MAP)            (basis exists; map can't certify absence)
 VERDICT: BLOCKED                               (every open task waits on the user)
+VERDICT: BLOCKED (PROVISIONAL)                 (same, on a reconstructed basis)
 ```
+
+**The rule that generates the rest, so no auditor has to invent a token.** The verdict line is
+`<work grade>` then, in one parenthetical, any qualifiers that apply, in this fixed order:
+grade detail (MINOR|MATERIAL|CAPTURED or PARTIAL MAP) first, basis status (PROVISIONAL|NONE)
+second, comma-separated. RATIFIED is the default and is never written. Every legal combination is
+formed this way — `DRIFTED (CAPTURED, PROVISIONAL)` and `BLOCKED (PROVISIONAL)` are as valid as
+the worked examples above, even though only some are spelled out.
 
 `Work map: n/a (no basis)` is mandatory whenever `Baseline: NONE` — FULL and PARTIAL both
 presuppose a scope to map against, so neither is true when scope itself is absent.
@@ -317,18 +348,36 @@ runs carry one debt reference and may continue existing in-scope work; **scope e
 requires a pick.**
 
 **No-change suppression:** same verdict and unchanged basis + evidence since the last stamp →
-one line + stamp, not a full report (stamps and DRIFT DECISIONS records are bookkeeping and
-don't count as changes; neither does an unchanged standing ask).
+one line + stamp, not a full report (stamps, DRIFT DECISIONS records, and dashboard refreshes
+are bookkeeping and don't count as changes; neither does an unchanged standing ask).
 
 **On any DRIFTED verdict, read `interrupt-mode.md` in this skill's directory and follow it** —
-grade-gated: MINOR applies and reports without spending a question — **but only for bookkeeping
-repairs; a MINOR finding whose fix is a content edit still needs the user's yes** (§5's table);
-MATERIAL presents slotted consequence scenarios and asks ONE question (attended) or records
-PENDING (unattended); silence never snoozes — only an explicit user decline does. On a PROVISIONAL basis, every interrupt is framed
+grade-gated: MINOR applies and reports without spending a question; MATERIAL presents slotted
+consequence scenarios and asks ONE question (attended) or records PENDING (unattended); silence
+never snoozes — only an explicit user decline does. **What any of that permits you to WRITE is
+decided in one place only — §5's category table — never by the grade and never restated here.**
+On a PROVISIONAL basis, every interrupt is framed
 `graded against the provisional basis reconstructed from <cite>` — a user who disputes the
 reconstruction has thereby been handed the ratification decision at its most concrete.
 
-## 5. The audit stamp (mandatory in EVERY mode, including INCONCLUSIVE)
+**Last, refresh the dashboard — the plain-language view of this report.** It runs *after* any
+interrupt-mode pass, so corrections applied there are already reflected. Update the embedded
+`DASHBOARD_DATA` in `docs/drift-dashboard.html` (or the host the user named): row statuses and
+evidence, start/finish times and how each finished step went, what changed since the previous
+stamp, what is waiting on the user, the verdict translated to plain English with its severity
+colour, the corrections list, the unmapped ratio, the absolute-path source links, and today's
+date. **Read `dashboard.md` in this skill's directory and follow it** — it carries the
+status-derivation table (a ticked box with broken evidence is never shown as Built), the verdict
+translation table, the two-voice rule that keeps jargon behind a disclosure, where times and
+build history may be derived from and where they must say `not recorded`, the design and colour
+contract, the never-ran-init and `Baseline: NONE` cases, and the rule that the dashboard is a
+VIEW and never an authority. A no-change audit still moves `lastUpdated`, so "checked,
+nothing moved" is visible rather than indistinguishable from "nobody looked". Missing file →
+generate it if a durable host exists, else offer and say none was written; that offer is a closing
+report line and **never spends interrupt-mode §2's one question**. Open a browser **only** when
+§0's display flag is set. **The dashboard never replaces §5's stamp** — both happen.
+
+## 5. The audit stamp (mandatory in every AUDIT mode, including INCONCLUSIVE — init excluded)
 
 Append ONE line to the SSOT's `## AUDIT LOG` (create the **section** if absent — never the
 **file**; see the no-host rule below):
@@ -355,11 +404,27 @@ document exists but you just ruled its content inadmissible** — writing an aud
 whose authority you have declined would lend it the standing you withheld. In the second case say
 which file you declined to write to, and why.
 
+**The same rule, adapted for the dashboard.** A tracked `docs/` (or an equivalent durable home
+the project already uses) is a host you may write to. If none exists, **ask the user where the
+dashboard should live before creating any directory** — and report that none was written until
+they answer. Unlike the stamp, the dashboard has nothing to fall back on: an HTML page cannot be
+"reported verbatim", so the honest outcome is an offer, never an invented folder.
+
 **The complete allow-list of writes the skill may make without the user's yes:** (1) this stamp;
 (2) DRIFT DECISIONS records (interrupt-mode.md §4); (3) **bookkeeping repairs** — preauthorized
-by a bound directive (unattended) or by the user's yes (attended). Nothing else, in any mode. The
-provisional basis is pinned **by pointer inside the stamp** — it needs no additional write, and no
-unratified sentence is ever copied into the user's files.
+by a bound directive (unattended) or by the user's yes (attended); (4) **generating or refreshing
+the drift dashboard** (`dashboard.md`) — classified as bookkeeping because it is a **derived
+view**: it restates the SSOT and this report in plain English and asserts nothing they do not
+already assert. Nothing else, in any mode. The provisional basis is pinned **by pointer inside the
+stamp** — it needs no additional write, and no unratified sentence is ever copied into the user's
+files.
+
+Two things the dashboard allowance does **not** cover, both of which need the user's word:
+**creating a host directory that does not exist** (the no-host rule below), and any SSOT edit the
+refresh made you want to make — repair the SSOT through the table below first, then let the
+dashboard follow it. And because the dashboard is a view, it never carries authority language:
+writing "this file wins" on it would manufacture a second D2 claim out of the skill's own
+bookkeeping.
 
 **Bookkeeping repair vs content edit — the line that decides what needs a yes.** Grade never
 grants write permission; *category* does.
@@ -367,6 +432,7 @@ grants write permission; *category* does.
 | Category | Examples | Authorization |
 |---|---|---|
 | **Bookkeeping repair** | a stale date; a mis-cited evidence sha; a missing stamp; a tick whose evidence exists but is unlinked | preauthorized directive (unattended) or the user's yes (attended) |
+| **Derived view** | generating or refreshing the drift dashboard into an existing durable host | preauthorized outright (allow-list item 4) — it restates, it never asserts |
 | **Content edit** | anything touching the deliverable, stages, workstreams, PARKED, budgets, or authority language — including *deleting* a stale workstream line | **always** the user's yes, at every grade, in every mode |
 
 A MINOR grade on a content edit does not make it applicable — MINOR describes the *finding's*
@@ -382,6 +448,8 @@ decision the user owns, however obviously correct it looks.
 - Authorship is three-way and only `AGENT-DRAFTED` disqualifies. `UNKNOWN` is the ordinary state
   of a real project and supports a PROVISIONAL basis — never collapse it into NONE.
 - Correct drift with the smallest edit to the SSOT — never by writing a new plan document.
+- The drift dashboard is a VIEW: derived, never authoritative, never cited, never a scope source.
+  It follows the SSOT; the SSOT never follows it. Refreshing it never replaces the stamp.
 - The skill never authors or edits the deliverable sentence, and never copies an unratified one
   into the user's files. Cite it; propose candidates; the user picks.
 - Never certify ON TRACK on a PARTIAL work map, and never build a basis out of the commits you
@@ -418,5 +486,9 @@ decision the user owns, however obviously correct it looks.
 - Passing evidence you only read: run it or mark `EVIDENCE: UNVERIFIABLE`.
 - Deriving scope from code — that enshrines drift as the plan.
 - Reading an old `NO BASELINE` stamp as "this project had no plan".
+- Refreshing the dashboard and calling that the audit trail. The stamp goes to `## AUDIT LOG`.
+- Showing a dashboard row as Built because work was dispatched, promised, or looks nearly done —
+  status comes from the evidence slots (`dashboard.md` §2a), never from momentum.
+- Opening a browser at a user who asked for an audit, not a view.
 - Ending without the stamp and "Next check due" — an audit that doesn't re-arm dies with
   the session.

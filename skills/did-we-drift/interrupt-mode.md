@@ -34,7 +34,7 @@ never suppress the diff; it is the user's falsification tool.
 
 | Grade | Behavior |
 |---|---|
-| MINOR | **Bookkeeping repair** → apply, report "applied", continue; no question spent. **Content edit** (scope, stages, workstreams, PARKED — SKILL.md §5's table) → never auto-applied: show the one-line edit, record PENDING, and let the user's next word settle it. A MINOR grade on a content edit still needs the yes. |
+| MINOR | No question spent. **What you may write is SKILL.md §5's category table, which is the only place that rule lives:** a bookkeeping repair applies and reports "applied"; a content edit is never auto-applied — show the one-line edit, record PENDING, and let the user's next word settle it. Grade does not grant write permission; category does. |
 | MATERIAL | Scenario pairs, then ONE question with three answers: **(a) correct and continue** — apply park/revert now; the run keeps working in-scope stages; **(b) correct and restart** — REQUIRED whenever a correction LEGITIMIZES scope (scope is the user's lane): stop per §5, apply per §4, hand over the §6 prompt; **(c) snooze** — decline; record per §3. |
 | CAPTURED | Scenario pairs, then **RATIFY-OR-REVERT** — the user writes the dated line ratifying the moved deliverable/stage set, or the plan reverts to its last ratified state. **Never snoozable.** While unresolved: re-reported at full weight every audit, and the verdict cannot be ON TRACK. |
 
