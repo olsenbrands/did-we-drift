@@ -75,8 +75,11 @@ Run D1's exclusion test on the final sentence, live: if it excludes nothing, pus
 concrete tempting item it fails to exclude. **Maximum two pushbacks; then stop with nothing
 written** — a banner sentence is never written (realign-mode).
 
-**The ratification write is its own commit** — docs-only, touching only the target's §1, with the
-user's **verbatim reply in the commit message** plus a trailer:
+**The basis write is its own commit** — docs-only, touching only the target's §1, with the user's
+**verbatim reply in the commit message**. **The trailer depends on which row of the table above
+fired, and the two forms are not interchangeable:**
+
+Rows 1–2 (authorship demonstrated — `basis-auth:user-dated`):
 
 ```
 ratify: <project> deliverable
@@ -85,6 +88,22 @@ User's reply, verbatim: "<exactly what they typed>"
 Ratified-by: <user> <date>
 ```
 
+Row 3 (adopted, not authored — `basis-auth:unknown`):
+
+```
+adopt: <project> deliverable (adopted, not authored)
+
+User's reply, verbatim: "<exactly what they typed>"
+Adopted-by: <user> <date>
+```
+
+**Never write `Ratified-by:` on a Row-3 adoption.** The whole point of the three-way classification
+is that a future auditor — any vendor, any machine — can tell demonstrated authorship from a
+two-word approval by reading the commit trail. A `Ratified-by:` trailer on an `unknown` basis
+destroys exactly that distinction and re-creates the delegated-authorship laundering this skill
+exists to end, one level up. The stamp field and the trailer must agree: `user-dated` ↔
+`Ratified-by`, `unknown` ↔ `Adopted-by`.
+
 This is what makes `basis-auth:user-dated` **checkable instead of asserted**: any future auditor
 — any vendor — runs `git log -S '<sentence>' --format='%H %s'`. Three shapes, one per path:
 - **Typed path**: exactly one docs-only commit — the ratification.
@@ -92,7 +111,8 @@ This is what makes `basis-auth:user-dated` **checkable instead of asserted**: an
   IS the Row-2 citation, and the ratification is the one carrying the `Ratified-by:` trailer.
 - **Same-file adoption** (the sentence already sat in the target SSOT and stays in place): `-S`
   returns only the original drafting commit; find the ratification by its trailer instead —
-  `git log --grep='Ratified-by:' --format='%H %s'`. **Never fabricate a textual change to the
+  `git log --grep='Ratified-by:' --format='%H %s'` (or `--grep='Adopted-by:'` on the Row-3
+  adoption path). **Never fabricate a textual change to the
   sentence just to make its history match an illustration.**
 Init prints the command(s) and the expected result for the shape taken in its exit output as the
 falsifier. And do not re-quote sentence fragments verbatim elsewhere in the document (coverage
@@ -193,8 +213,11 @@ Post-write, verify byte integrity only. Any post-write surprise → stop; new co
 further edit. **No AUDIT LOG line is written and no verdict is printed** — init is not an audit.
 
 **Exit output, all five, every time:**
-1. The falsifier: `git log -S '<sentence>' --format='%H %s'` → must return exactly the
-   ratification commit.
+1. The falsifier, **stated for the path actually taken** (Step 4's three shapes — do not print a
+   command whose expected result your own run cannot produce):
+   `git log -S '<sentence>' --format='%H %s'` → the basis commit, for the typed and
+   Row-2 paths; on a same-file adoption use `git log --grep='Ratified-by:'`, and on a Row-3
+   adoption `git log --grep='Adopted-by:'`. Print the command AND the result it should return.
 2. The expected first-audit report, verbatim — the exact `VERDICT: ON TRACK` / `Baseline:
    RATIFIED (…)` / `Work map: FULL (…)` / `Authorship: USER-RATIFIED (…)` lines the user should
    see if nothing drifts (or the PROVISIONAL forms, on the adoption path). Its `Since:` line is

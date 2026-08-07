@@ -292,12 +292,16 @@ never cited as a basis, and if the two ever disagree the plan wins and the page 
 the audit finds no admissible plan, the meter is *hidden* rather than recoloured — a percentage
 computed against a plan that was just ruled inadmissible is a lie, however pretty.
 
-A bundled checker (`verify-dashboard.mjs`) runs on every generate and refresh: it proves the page
-renders, escapes its inputs, keeps jargon out of the default view, and — given your plan file —
-that the quoted goal appears **verbatim** in it and every step on the page actually exists there.
-It runs the page in a sandboxed process with no filesystem access, because dashboards live in
-repos that agents wrote. A green run means the page renders and matches the plan text it cites;
-it does *not* mean the statuses are true, and it says so.
+A bundled checker (`verify-dashboard.mjs`) runs on every generate and refresh. It proves the page
+renders, escapes its inputs, keeps jargon out of the default view, that the quoted goal appears
+**verbatim** in your plan and every step on the page exists there, and that every step marked
+finished was re-checked in *this* pass rather than coasting on an old tick.
+
+**It never runs the page's own code.** The data is inert JSON, read directly; the rendering is done
+by the trusted copy shipped with the skill, in a sandboxed child with a cleared environment. A page
+whose rendering code has been altered fails and is never executed — because dashboards live in
+repos that agents wrote. A green run means the page renders and matches the plan it cites; it does
+*not* mean the statuses are true, and it says so.
 
 Mechanics: [`dashboard.md`](skills/did-we-drift/dashboard.md).
 
@@ -415,6 +419,27 @@ gate/phase/wave · resuming a multi-session project · before ratifying or accep
 build that feels over-engineered · planning docs that are missing, contradictory, duplicated, or
 living only in gitignored/local files. It pairs naturally with a plan document that names the
 skill in its own cadence section — then every future session re-arms the check unprompted.
+
+## New in v3.4.1
+
+Hardening after an adversarial cross-model review of v3.4.0.
+
+- **Verify before grading.** The deep check now runs *before* the verdict, not after. Previously a
+  step demoted by the deep check could sit under a verdict, a report and an audit-log line that
+  all still said "on track" — the exact failure this skill exists to catch.
+- **The page's own code is never executed.** Data moved to an inert JSON block; rendering uses the
+  trusted copy from the skill; an altered renderer now fails instead of being skipped and run.
+  The sandbox also clears the environment — the previous one blocked files but not env or network.
+- **The all-row promise is now checkable.** Each pass stamps an audit id, and every finished step
+  carries the id of the pass that re-verified it. Skipping the check now requires writing a false
+  id onto every row rather than quietly doing nothing.
+- **Evidence is checked by its own kind.** Commands get run; signed-off and external proofs are
+  confirmed by provenance. Non-code projects are no longer demoted for having nothing to execute.
+- **No-plan pages are honest all the way down** — hiding the meter left green "Built" badges
+  underneath; rows now render as a neutral record of the old plan.
+- **Adopted is not ratified.** A two-word approval writes `Adopted-by`, never `Ratified-by`, so the
+  commit trail keeps the distinction the authorship check exists to make.
+- One stamp per run, owned by one place; provenance runs automatically from the page's own sources.
 
 ## New in v3.4
 

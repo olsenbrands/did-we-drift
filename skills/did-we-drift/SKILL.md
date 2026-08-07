@@ -374,7 +374,15 @@ On a PROVISIONAL basis, every interrupt is framed
 `graded against the provisional basis reconstructed from <cite>` — a user who disputes the
 reconstruction has thereby been handed the ratification decision at its most concrete.
 
-**Last, refresh the dashboard — the plain-language view of this report.** It runs *after* any
+**Exactly ONE stamp per run, and this sequence owns it.** The order is: resolve and classify →
+verify evidence → compute the verdict once → interrupt-mode if DRIFTED → refresh the dashboard →
+write the single §5 stamp. Interrupt-mode **returns a correction result and does not stamp** —
+if it stamped inline, a run would either write two stamps or make the next audit's "since you
+last looked" read its own stamp as the previous audit. Verify before grading, never after: a
+check that can demote a row must run before the verdict that row feeds, or the report and the
+page will disagree.
+
+**Then refresh the dashboard — the plain-language view of this report.** It runs *after* any
 interrupt-mode pass, so corrections applied there are already reflected. Update the embedded
 `DASHBOARD_DATA` in `docs/drift-dashboard.html` (or the host the user named): row statuses and
 evidence, start/finish times and how each finished step went, what changed since the previous

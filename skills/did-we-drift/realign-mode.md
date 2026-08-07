@@ -65,10 +65,20 @@ commit messages that state intent (evidence of intent only, never a basis) · ex
 collaborator artifacts (design packages, contractor specs — admissible only under the same §3a.2
 tests as anything else).
 
-Run §3a.2's authorship classification on **every** candidate and group the output into two
-visibly separate buckets: **user-authored** and **agent-authored (quarantined)**. That separation
-is the deliverable of this step. A project whose entire quarantine bucket is full and whose
-user-authored bucket is empty has just been told something true and important about itself.
+Run §3a.2's authorship classification on **every** candidate and group the output into **three**
+visibly separate buckets, matching the classification exactly — never two:
+
+- **`USER-RATIFIED`** — evidence of the user's own authorship, cited.
+- **`UNKNOWN`** — no strong tell, but no evidence either. **This is the ordinary state of a real
+  project and it is admissible for a PROVISIONAL basis** (§3a.2). Collapsing it into the
+  quarantine bucket would refuse to grade every project whose planning is merely undocumented
+  rather than agent-written — the exact failure the two-axis design exists to end.
+- **`AGENT-DRAFTED` (quarantined)** — a strong tell fired; inadmissible for scope.
+
+That separation is the deliverable of this step. A project whose quarantine bucket is full and
+whose user-authored bucket is empty has just been told something true and important about itself.
+A candidate adopted from the `UNKNOWN` bucket records `basis-auth:unknown` and takes init Step 4's
+`Adopted-by:` trailer — never `Ratified-by:`.
 
 ## B3. Intent before artifacts — and the intent pass is code-blind
 

@@ -42,16 +42,27 @@ the dashboard follow it.
 
 ## 2. The refresh — edit `DASHBOARD_DATA` and nothing else
 
-The page renders entirely from one object at the top of its single `<script>` block. A refresh
-rewrites values inside that object. **Never restyle, never re-lay-out, never touch the rendering
-code below the `END DASHBOARD_DATA` marker** — a user who has learned to read this page should
-never have to re-learn it because an auditor redecorated.
+The page's data lives in an **inert `application/json` block** — `<script id="dashboard-data"
+type="application/json">`. A refresh rewrites values inside that block and nothing else. **Never
+restyle, never re-lay-out, never touch the rendering code** — a user who has learned to read this
+page should never have to re-learn it because an auditor redecorated, and the checker now **fails**
+a page whose renderer differs from the template by even one byte.
+
+**Write the data with one JSON serializer over the whole object, and escape the less-than
+character as `\u003c`.** Never hand-quote a value into place. This is structural, not stylistic:
+data that is JSON rather than JavaScript cannot execute, cannot be broken out of by a project
+string containing a quote or a `</script>`, and can be read by the checker without ever running
+the page. Hand substitution reintroduces every one of those problems at once.
 
 **Refresh the schema you find, not the schema you wanted.** A dashboard generated before the
 current template will have different field names and may be missing fields entirely. Fill the
 fields it has; **never migrate a working page to the template's shape to gain a field** — that
 is a layout change wearing a refresh's clothes. Where a field has no home, carry the fact in the
 explanation paragraph instead. The template is for pages that do not exist yet.
+
+**One exception, and only one: honesty.** If the older page cannot express something it needs in
+order to stop misleading the reader — the no-plan state being the real case (§6) — regenerate it
+from the template and say so in the report. Layout stability is a courtesy; not lying is not.
 
 **The progress meter is computed, never stored.** The template counts row statuses at render
 time, so the percentage cannot drift from the rows it describes. There is no percentage field to
@@ -70,6 +81,9 @@ Field by field, sourced from the audit you just ran:
 | `baseline.baselineNote` | the `Baseline:` axis | RATIFIED → "You wrote and confirmed this plan on `<date>`." · PROVISIONAL → "Reconstructed from `<cite>` — you have not confirmed it in your own words yet." |
 | `baseline.planStatus` | the `Baseline:` axis | `agreed` (RATIFIED) · `unverified` (PROVISIONAL) · `none` (NONE). **This one changes what the page shows** — §6 |
 | `baseline.lastUpdated` | today | every refresh, even a no-op one |
+| `baseline.auditRunId` | this pass | a fresh id every run; never carried forward |
+| `rows[].lastVerified` | this pass | set to `auditRunId` on rows you personally re-confirmed as `built` — the receipt that makes the all-row check verifiable |
+| `rows[].evidenceKind` | the stage's evidence | `command` \| `signed-off` \| `external` — decides HOW the proof is re-checked (§5 step 3) |
 | `sinceLastLook` | the previous stamp | §2f |
 | `waitingOnYou` | the SSOT's WAITING ON USER section | §2f |
 | `rows[].tag` | the stage/task ID | badge only — never the only thing a row says |
@@ -318,15 +332,21 @@ a mode — nothing is skipped, and the audit's semantics are untouched.
 
 Run these in order. Do not shortcut to step 5.
 
-**1. Run the ordinary audit, in full.** Window resolution, commit classification, work-map
-mapping, basis-history check, verdict — SKILL.md §3b and §4, unchanged. The token adds work; it
-never removes any.
+**The order matters, and it is the opposite of the obvious one.** The exhaustive check comes
+BEFORE the verdict, not after. Verify first, then grade once, from the completed evidence set.
+Grading first and verifying second produces the failure this whole skill exists to catch: a page
+showing a step demoted to *In progress* above a verdict panel, a report, and an audit-log line
+that all still say ON TRACK. If you find yourself re-opening a verdict you already computed, the
+steps were run in the wrong order.
+
+**1. Open the audit.** Resolve the window, classify the commits, map them to the work map, run
+the basis-history check — SKILL.md §3b, unchanged. **Stop before computing the verdict.**
 
 **2. Re-derive EVERY row's status, not just the sampled ones.** This is the "double check" the
 user is paying for, and it is the one place a dashboard request is stricter than a routine audit.
 §3b samples three items by risk; here you walk the whole list, because the user is about to look
 at every row and believe it. For each row, re-read the box and the evidence slot in the SSOT and
-re-apply §2a. Cheap and bounded — it is reading a tracker, not re-running a build.
+re-apply §2a. This part is genuinely cheap — it is reading a tracker, not re-running a build.
 
 Watch for the four things that rot quietly between audits:
 - a row still `built` whose evidence no longer resolves (file moved, commit rewritten, test gone);
@@ -335,36 +355,74 @@ Watch for the four things that rot quietly between audits:
 - a row still `partial` that actually finished — box ticked and evidence filled since last time;
 - a row whose plan text changed, so the page is describing a step that no longer exists.
 
-**3. Re-run the evidence you can actually run.** Anything runnable behind a `built` row gets run,
-not read (§3b). What is only inspectable comes back `EVIDENCE: UNVERIFIABLE` and the row drops to
-`partial` with the reason in `howItWent`. **A row that cannot be re-verified is never left green
-just because it was green last week.**
+**3. Re-check each `built` row's proof BY ITS OWN KIND.** Evidence is not all executable, and
+treating it as though it were would wrongly demote every non-code project (SKILL.md D3 permits
+signed-off evidence with provenance). Record which kind each row carries in `evidenceKind`:
 
-**4. Refresh `DASHBOARD_DATA` completely** (§2): statuses, evidence, timings and build history,
-what changed since the last stamp, waiting-on-you, the verdict panel and its severity, the
-corrections, the stats, the source links, and `lastUpdated`. Then **run the checker** (§9) —
-including `--ssot`, since you have the plan paths in hand from step 1. A dashboard you are about
-to put in front of someone is exactly the one worth verifying.
+| `evidenceKind` | How it is re-checked | Renders as |
+|---|---|---|
+| `command` | **Run it.** Reading it is not checking it. | "re-run and passed" |
+| `signed-off` | Confirm the named person and date are recorded. Provenance IS the check — never demote it for being unrunnable. | "confirmed by who signed it off" |
+| `external` | Confirm the cited outside record still says what the row claims. | "confirmed against the outside record" |
 
-**5. Open it.** `open <path>` on macOS; `xdg-open` on Linux; `start` on Windows.
+A row whose proof **fails** its own kind of check drops to `partial` with the reason in
+`howItWent`. **A row is never left green because it was green last week** — but equally, a
+correctly signed-off row is never demoted merely because there is no command to run.
 
-**6. Still print the §4 report and write the §5 stamp.** The page is the view; the report and the
+**Bound the runnable work before you start.** Set a per-command timeout, run each distinct command
+once (dedupe repeats across rows), and skip anything whose DONE-WHEN is not plainly read-only —
+an evidence command is allowed to be arbitrary shell, so re-running it is not automatically safe
+or free. If the budget runs out, stop and say which rows were not re-checked rather than silently
+passing them: an unfinished check reported honestly is worth more than a complete-looking lie.
+
+**4. NOW compute the verdict**, once, from the evidence set steps 2–3 just produced — SKILL.md §4.
+If those steps demoted a row, the verdict follows from the demotion rather than being contradicted
+by it. If the verdict is DRIFTED, hand off to `interrupt-mode.md` here, before anything is
+rendered — the user hears bad news in the conversation, not from a browser tab.
+
+**5. Refresh `DASHBOARD_DATA` completely** (§2): statuses, evidence and its kind, timings and
+build history, what changed since the last stamp, waiting-on-you, the verdict panel and its
+severity, the corrections, the stats, the source links, `lastUpdated`, and — the part that makes
+step 2 checkable — a fresh `auditRunId` plus a matching `lastVerified` on **every** row you just
+confirmed as `built`. Then **run the checker** (§9). A dashboard you are about to put in front of
+someone is exactly the one worth verifying.
+
+**6. Open it.** `open <path>` on macOS; `xdg-open` on Linux; `start` on Windows.
+
+**7. Print the §4 report and write the ONE §5 stamp.** The page is the view; the report and the
 stamp are the audit. Opening a browser never replaces either, and "I showed you the dashboard" is
-not an audit trail.
+not an audit trail. One stamp per run, written here at the end — never a second one earlier in the
+sequence.
 
 Then say, in two or three sentences, **what changed since they last looked and what needs them** —
 the same content as the page's top two panels. A user who asked to be shown something should not
 have to read the whole page to learn the one thing that moved.
 
+### What makes step 2 checkable instead of merely promised
+
+Steps 2 and 3 are the whole value of the command, and prose cannot enforce them — no checker can
+watch you read a tracker. So the pass leaves a **receipt in the data**:
+
+- `baseline.auditRunId` — an id for THIS pass (`<project>-<date>-<letter>`), rewritten every run.
+- `rows[].lastVerified` — set to that id on every row you personally re-confirmed as `built`.
+
+The checker then fails any `built` row whose `lastVerified` is missing or stale. That converts
+"I re-derived every row" from an unverifiable claim into a specific, visible one: skipping the pass
+now requires **writing a false id onto every finished row**, which is a deliberate act rather than
+a quiet omission. It does not make dishonesty impossible; it makes it explicit, which is the most
+any checker can do. Never copy the previous run's ids forward.
+
 ### The cases that need care
 
 | Situation | What to do |
 |---|---|
-| **No dashboard exists yet** | Generate it (§4's never-ran-init path) and open it. The user explicitly asked to see it, so this is not the silent-refresh case. No durable host → ask where it should live; do not invent a directory. |
+| **No dashboard exists yet** | Generate it (§4's never-ran-init path) and open it. The user explicitly asked to see it, so this is not the silent-refresh case. No durable host → ask where it should live, then **still print the report and write the stamp** — a pending question about where a file goes never swallows the audit. |
 | **`Baseline: NONE`** | Do not fabricate a page to satisfy the request. If one exists, refresh it to the quarantined state (§6) and open it — that IS the honest answer to "where do we stand". If none exists, explain in plain words that there is no agreed finish line to measure against, and offer `/did-we-drift init` or the recovery pass. Never render a progress page over an inadmissible plan. |
-| **Unattended** (inside a `/loop` or `/goal`, no human this turn) | Refresh, **never open a browser** — there is nobody at the screen and a stray window is a real annoyance on a shared machine. Note in the report that the page was updated and where it is. |
+| **Unattended** (inside a `/loop` or `/goal`, no human this turn) | Refresh, **never open a browser** — there is nobody at the screen and a stray window is a real annoyance on a shared machine. Say in the report that the page was updated and where it is. §0's "and it is opened" guarantee is about attended runs; this row is the standing exception, not a conflict. |
 | **Nothing changed since the last audit** | Still refresh, still open. "I checked, and nothing moved" is a legitimate answer to the question, and §4's no-change suppression governs the *report's* length, never whether the page opens. |
-| **The audit turns up a MATERIAL or CAPTURED problem** | Handle the interrupt first (interrupt-mode.md), then refresh and open. The user gets the bad news in the conversation, not only in a browser tab they might close. |
+| **Any DRIFTED verdict — MINOR, MATERIAL or CAPTURED** | Hand off to `interrupt-mode.md` at step 4, before rendering. MINOR is included: it may repair bookkeeping or record a PENDING decision, and both change what the page should say. |
+| **The checker fails** | Fix the data and re-run. If it still fails, **do not open the page and do not claim it is current** — report the failure verbatim, and still write the stamp. A page that failed its own checks is not an answer. |
+| **Opening the page fails** | Report the path and say plainly that it could not be opened. Never say you showed the user something you did not. The report and stamp still happen. |
 
 **An audit nobody asked to see refreshes the file silently.** Never open a browser at someone who
 only asked for an audit. Offering to regenerate a missing dashboard is a closing line in the
@@ -390,9 +448,21 @@ and the earlier version of this page happily printed "29% built" directly above 
 "there is no agreed plan to measure against" — the exact false confidence this skill exists to
 prevent, produced by the skill itself.
 
-Hiding the meter is not enough on its own: **the headline and subheading must also stop claiming
-progress.** "Two of seven steps are finished" is the same lie in prose. Say what is true instead —
-what the page is now, and what would make it measurable again. The checker enforces both.
+Hiding the meter is not enough on its own, and an earlier version of this skill made exactly that
+mistake — it hid the meter while leaving green "Built" badges rendering underneath a banner saying
+the plan had been rejected. Three things move together now, all enforced:
+
+1. the meter is **hidden**;
+2. **every row renders as a neutral record** ("· On the old plan") with its timing facts
+   suppressed — the renderer does this from `planStatus` alone, so no green badge can survive;
+3. the **headline and subheading stop claiming progress** — "two of seven steps are finished" is
+   the same lie in prose.
+
+**The one time a legacy page may be migrated.** §2 forbids migrating an older page to the current
+schema to gain a field — but that rule exists to prevent gratuitous redesign, not to freeze a page
+in a dishonest state. A page that cannot express `planStatus` cannot be made honest, so this case
+is the exception: regenerate it from the template, and say in the report that you did and why.
+Honesty outranks layout stability; nothing else does.
 
 ## 7. Plain language is a hard requirement, not a polish pass
 

@@ -7,12 +7,13 @@
   sets scope, is never cited as a basis, and if it ever disagrees with the plan, the
   plan is right and this file gets corrected.
 
-  HOW TO UPDATE (for future agents): edit the DASHBOARD_DATA object below — nothing
-  else. Generate every string with JSON.stringify, and escape the less-than character
-  using its backslash-u-003c form, so no project text can ever break out of the data
-  block. Keep this file self-contained: no CDN, no web fonts, no images, no network
-  requests of any kind. It must work opened straight off disk (file://). The progress
-  meter is COMPUTED from the row statuses, so it can never disagree with the rows.
+  HOW TO UPDATE (for future agents): edit ONLY the application/json block below.
+  It is inert data — nothing in it can execute — which is what lets the checker read
+  this page without ever running it. Serialize the whole object with one JSON
+  serializer; never hand-quote a value into place. Keep this file self-contained: no
+  CDN, no web fonts, no images, no network requests of any kind. It must work opened
+  straight off disk (file://). The progress meter is COMPUTED from the row statuses,
+  so it can never disagree with the rows.
 -->
 <title>Drift dashboard</title>
 <meta charset="utf-8">
@@ -415,7 +416,8 @@
     border-color: var(--warn-border);
   }
 
-  .status-pill.not_started {
+  .status-pill.not_started,
+  .status-pill.record {
     background: var(--neutral-bg);
     color: var(--neutral-text);
     border-color: var(--neutral-border);
@@ -543,7 +545,7 @@
   }
 </style>
 
-<div class="wrap">
+<div class="wrap" role="main">
   <header class="page-head panel" id="page-head-panel">
     <h1 id="headline"></h1>
     <p class="subhead" id="subheading"></p>
@@ -626,101 +628,96 @@
   </footer>
 </div>
 
+<!--
+  DASHBOARD_DATA lives in the application/json block below. It is DATA, not code:
+  nothing in it can execute, which is what lets a checker read it without ever
+  running this page. Rules for whoever edits it:
+
+    * Generate it with one JSON serializer over the whole object. Never hand-quote
+      a value into place, and escape the less-than character as \u003c so no
+      project text can close this tag.
+    * Plain language everywhere EXCEPT each row's "technical" field. If a reader
+      sees it without opening a disclosure, it must be jargon-free.
+    * A fact that was never recorded is "" and renders as "not recorded".
+      Never guess, never omit the line.
+    * "auditRunId" identifies the audit that produced this state. Every row that
+      claims "built" must carry a "lastVerified" equal to it — that is what proves
+      the row was re-checked in THIS pass rather than coasting on an old tick.
+    * Never set a percentage. The meter is computed from the row statuses.
+
+  Field reference:
+    baseline    title, headline, subheading, deliverable, deliverableCitation,
+                baselineNote, lastUpdated, auditRunId, extraMeta[{label,value}],
+                planStatus: "agreed" | "unverified" | "none",
+                quarantineTitle, quarantineBody   (shown only when planStatus is "none")
+    sinceLastLook  { lastCheckedDate, changes[] }
+    waitingOnYou   [{ since, decision }]
+    rows           [{ tag, planned, why, status, started, finished, elapsed,
+                      expected, howItWent, evidence, evidenceKind, technical,
+                      lastVerified }]
+                   status: "built" | "partial" | "not_started"
+                   evidenceKind: "command" | "signed-off" | "external" | "" —
+                     how the proof is checked. A signed-off or external proof is
+                     verified by provenance, NOT by being run, and is never
+                     demoted merely because it is not executable.
+    verdict        { severity: "ok"|"warn"|"alert"|"neutral", headline,
+                     explanation, stats[{label,value}], corrections[] }
+    sources        [{ role, path, href }]  path absolute for reading, href relative
+    backlog        { title, items[{name,note}] }
+-->
+<script id="dashboard-data" type="application/json">
+{
+  "baseline": {
+    "title": "{{TITLE}}",
+    "headline": "{{HEADLINE}}",
+    "subheading": "{{SUBHEADING}}",
+    "deliverable": "{{DELIVERABLE_SENTENCE}}",
+    "deliverableCitation": "{{DELIVERABLE_CITATION}}",
+    "baselineNote": "{{BASELINE_NOTE}}",
+    "lastUpdated": "{{LAST_UPDATED}}",
+    "auditRunId": "{{AUDIT_RUN_ID}}",
+    "planStatus": "agreed",
+    "quarantineTitle": "",
+    "quarantineBody": "",
+    "extraMeta": []
+  },
+  "sinceLastLook": { "lastCheckedDate": "", "changes": [] },
+  "waitingOnYou": [],
+  "rows": [
+    {
+      "tag": "{{TAG}}",
+      "planned": "{{PLANNED}}",
+      "why": "{{WHY_IT_MATTERS}}",
+      "status": "not_started",
+      "started": "",
+      "finished": "",
+      "elapsed": "",
+      "expected": "",
+      "howItWent": "",
+      "evidence": "",
+      "evidenceKind": "",
+      "technical": "{{TECHNICAL}}",
+      "lastVerified": ""
+    }
+  ],
+  "verdict": {
+    "severity": "neutral",
+    "headline": "{{VERDICT_HEADLINE}}",
+    "explanation": "{{VERDICT_EXPLANATION}}",
+    "stats": [],
+    "corrections": []
+  },
+  "sources": [],
+  "backlog": { "title": "{{BACKLOG_TITLE}}", "items": [] }
+}
+</script>
+
 <script>
-  // ============================================================
-  // BEGIN DASHBOARD_DATA — the ONLY thing future agents may edit.
-  //
-  // PLAIN LANGUAGE IS THE CONTRACT. Everything outside `technical`
-  // and the `tag` badge must be readable by someone who has never
-  // seen this project: no acronyms, no ticket IDs, no stage numbers,
-  // no tool names. All jargon goes in `technical`, behind the
-  // "Want the technical specs?" disclosure.
-  //
-  // Any fact that was never recorded is written as an empty string
-  // and renders as "not recorded" — never omitted, never guessed.
-  // ============================================================
-  const DASHBOARD_DATA = {
-    baseline: {
-      // Browser tab title.
-      title: "{{TITLE}}",
-      // The big headline: the project plus how it is going, in one line.
-      headline: "{{HEADLINE}}",
-      // One sentence under it: the current state in human terms.
-      subheading: "{{SUBHEADING}}",
-      // The ratified deliverable sentence, QUOTED VERBATIM. Never paraphrase,
-      // never author a new one here — this page only quotes what was ratified.
-      deliverable: "{{DELIVERABLE_SENTENCE}}",
-      // Where it lives and who ratified it: "PLAN.md §1, written by Sam, 2026-08-06".
-      deliverableCitation: "{{DELIVERABLE_CITATION}}",
-      // Plain-English note on how solid the plan is.
-      baselineNote: "{{BASELINE_NOTE}}",
-      lastUpdated: "{{LAST_UPDATED}}",
-      extraMeta: [],         // [{ label, value }, ...]
-
-      // How much the plan itself can be trusted. THIS CHANGES WHAT THE PAGE SHOWS.
-      //   "agreed"     — the plan was written and confirmed by the user
-      //   "unverified" — reconstructed; the user has not confirmed it in their words
-      //   "none"       — no admissible plan. The meter is HIDDEN and a warning shown,
-      //                  because a percentage of an inadmissible plan is a lie. Leave
-      //                  the rows in place as a quarantined record of the last known
-      //                  plan; they are not a claim about progress any more.
-      planStatus: "agreed",
-      // Shown only when planStatus is "none".
-      quarantineTitle: "",
-      quarantineBody: ""
-    },
-
-    // What moved since the previous check. Empty `changes` renders the
-    // "nothing changed" note, which is itself useful information.
-    sinceLastLook: {
-      lastCheckedDate: "",   // "" on a first check
-      changes: []            // ["Plain sentence about what moved.", ...]
-    },
-
-    // Decisions blocking the build. Empty array hides the whole section.
-    waitingOnYou: [],        // [{ since: "2026-08-06", decision: "..." }, ...]
-
-    // One row per planned step, in plan order.
-    rows: [
-      {
-        tag: "{{TAG}}",              // internal ID — muted badge only
-        planned: "{{PLANNED}}",      // plain language: what this step gives a person
-        why: "{{WHY_IT_MATTERS}}",   // the real-world scenario: what was wrong before
-        status: "not_started",       // "built" | "partial" | "not_started"
-        started: "",                 // "Aug 4, 2026, 2:15pm"
-        finished: "",                // "Aug 6, 2026, 9:40am"
-        elapsed: "",                 // "took 1 day"  /  "day 1 so far"
-        expected: "",                // "expected 3–5 days"
-        howItWent: "",               // plain sentence: reviews, bugs, anything skipped
-        evidence: "",                // what proves it
-        technical: "{{TECHNICAL}}"   // all the jargon lives here, and only here
-      }
-    ],
-
-    verdict: {
-      // "ok" | "warn" | "alert" | "neutral" — drives the panel's colour.
-      // ok = on track · warn = record has gaps · alert = off course or the
-      // plan moved · neutral = cannot tell yet.
-      severity: "neutral",
-      headline: "{{VERDICT_HEADLINE}}",
-      explanation: "{{VERDICT_EXPLANATION}}",
-      stats: [],               // [{ label, value }, ...]
-      corrections: []          // smallest first; empty renders "Nothing to correct"
-    },
-
-    // Real documents behind this page, regenerated each refresh.
-    //   role — plain language: what this document is FOR, never just its filename
-    //   path — the full absolute path, shown as the link text so it can be copied
-    //   href — the SAME file relative to this page (e.g. "../PLAN.md"), used as the
-    //          actual link, so the page keeps working on another machine
-    sources: [],               // [{ role, path, href }, ...]
-
-    // Parked work. Empty items hides the section.
-    backlog: { title: "{{BACKLOG_TITLE}}", items: [] }
-  };
-  // ============================================================
-  // END DASHBOARD_DATA. Rendering code below — do not edit.
-  // ============================================================
+  // Read the inert data block. Everything below is rendering code only — a
+  // data-only refresh must never touch it.
+  const DASHBOARD_DATA = JSON.parse(
+    document.getElementById("dashboard-data").textContent
+  );
 
   function escapeHtml(str) {
     return String(str)
@@ -850,7 +847,17 @@
       const when = [row.started, row.finished].filter(Boolean).join(" → ");
       lines.push(fact("When", [when, row.elapsed].filter(Boolean).join(" · "), "not recorded"));
       lines.push(fact("How it went", row.howItWent, "not recorded"));
-      if (row.evidence) lines.push(fact("Proof", row.evidence, ""));
+      lines.push(fact("Proof", row.evidence, "not recorded"));
+      // Say how the proof was confirmed. A signed-off or external proof is checked by
+      // its provenance, never by running it — so it is never demoted for being
+      // unrunnable, and the reader is told which kind they are looking at.
+      const KIND = {
+        command: "re-run and passed",
+        "signed-off": "confirmed by who signed it off",
+        external: "confirmed against the outside record"
+      };
+      if (row.evidenceKind && KIND[row.evidenceKind])
+        lines.push(fact("Checked", KIND[row.evidenceKind], ""));
     } else if (row.status === "partial") {
       const prog = [row.started ? "started " + row.started : "", row.elapsed, row.expected]
         .filter(Boolean)
@@ -865,10 +872,20 @@
   }
 
   function renderRows(data) {
+    // With no admissible plan, these rows are a RECORD of the last known plan, not a
+    // progress claim. Neutralising the pills is structural: a page cannot show green
+    // "Built" badges under a banner saying the plan was rejected.
+    const noPlan = data.baseline.planStatus === "none";
     el("rows-container").innerHTML = data.rows
       .map((row) => {
-        const meta = STATUS_META[row.status] || STATUS_META.not_started;
-        const statusClass = STATUS_META[row.status] ? row.status : "not_started";
+        const meta = noPlan
+          ? { icon: "·", label: "On the old plan" }
+          : STATUS_META[row.status] || STATUS_META.not_started;
+        const statusClass = noPlan
+          ? "record"
+          : STATUS_META[row.status]
+            ? row.status
+            : "not_started";
         const why = row.why
           ? `<div class="why-text">${escapeHtml(row.why)}</div>`
           : "";
@@ -892,7 +909,7 @@
                 <span aria-hidden="true">${escapeHtml(meta.icon)}</span>
                 <span>${escapeHtml(meta.label)}</span>
               </span>
-              ${factLines(row)}
+              ${noPlan ? "" : factLines(row)}
             </div>
           </div>
         `;

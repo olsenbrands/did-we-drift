@@ -81,7 +81,10 @@ PENDING|SNOOZED|RESOLVED|SUPERSEDED · correction C-<n> · <one-line finding>
 1. The §6 resume prompt is generated BEFORE any stop is emitted (a stop must never strand the
    run). 2. Before applying corrections, re-check the §0 anchor (SSOT blob + HEAD); moved →
    ABORT and re-audit — never repair a plan that shifted underneath the audit. 3. Apply the
-   manifest edits; mark records RESOLVED; stamp. 4. STOP is three things the skill CAN do:
+   manifest edits and mark records RESOLVED, then **return the correction result — do NOT stamp
+   here.** SKILL.md §4's sequence owns the single stamp and writes it once, after the dashboard
+   refresh; stamping inline would produce two stamps for one run, and the next audit would read
+   this run's own stamp as the previous audit. 4. STOP is three things the skill CAN do:
    print the STOP token, write the stop into the SSOT, and start no further work this turn —
    the directive must carry "on STOP, start no new work" for the harness side.
 
