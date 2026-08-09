@@ -16,7 +16,7 @@ Classify the repo into exactly one state and follow its row. Never proceed on th
 
 | State | Test | Action |
 |---|---|---|
-| `ratified` | a tracked doc carries a ratified §1 (dated user attribution) and an authority claim | **Refuse re-init.** Report the existing basis and its citation; a re-scope is a dated supersession line under §3a.3, never a second ceremony. Offer the ordinary audit — **and if the repo has no drift dashboard, offer to generate just that** (`dashboard.md` §1). A view re-ratifies nothing, so it survives the refusal the ceremony does not. |
+| `ratified` | a tracked doc carries a ratified §1 (dated user attribution) and an authority claim | **Refuse re-init.** Report the existing basis and its citation; a re-scope is a dated supersession line under §3a.3, never a second ceremony — and **stale verified facts are `/did-we-drift update`** (`update-mode.md`), never a second ceremony either. Offer the ordinary audit — **and if the repo has no drift dashboard, offer to generate just that** (`dashboard.md` §1). A view re-ratifies nothing, so it survives the refusal the ceremony does not. |
 | `conflicted` | >1 surviving authority claim | Init cannot pick a side (interrupt-mode §7). Report both claims with dates; the user retires one first. Nothing written. |
 | `historical` | ≥1 SUBSTANTIVE commit exists (classify per §3b; docs/planning commits don't count) | Proceed, and Step 7 is mandatory. |
 | `uninitialized` | none of the above | Proceed; Step 7 is skipped. |

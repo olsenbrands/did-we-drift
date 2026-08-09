@@ -1,6 +1,6 @@
 ---
 name: did-we-drift
-description: Use when ending a build gate, phase, or wave; resuming a multi-session project; before ratifying/accepting a plan; or when a build feels over-engineered or off-course from the user's deliverable. Also use when planning docs are missing, contradictory, duplicated, stale, or live only in gitignored/local files. Also use whenever the user asks to SEE where a build stands — "show me the dashboard", "show me what's been worked on", "how far along are we", "are we on track" — via `/did-we-drift dashboard`, which re-checks the finished work and the drift, updates the progress page, and opens it. Users can run `/did-we-drift init` after writing a plan and before launching a build to establish a ratified baseline the audits will use.
+description: Use when ending a build gate, phase, or wave; resuming a multi-session project; before ratifying/accepting a plan; or when a build feels over-engineered or off-course from the user's deliverable. Also use when planning docs are missing, contradictory, duplicated, stale, or live only in gitignored/local files. Also use whenever the user asks to SEE where a build stands — "show me the dashboard", "show me what's been worked on", "how far along are we", "are we on track" — via `/did-we-drift dashboard`, which re-checks the finished work and the drift, updates the progress page, and opens it. Users can run `/did-we-drift init` after writing a plan and before launching a build to establish a ratified baseline the audits will use, and `/did-we-drift update` at a milestone, after a landing, or before handing a project to a new run — when the verified-facts baseline has gone stale and open items need dispositioning.
 ---
 
 # Did We Drift
@@ -24,6 +24,14 @@ files — it cites, and proposes candidates the user picks from.**
   ordinary audit — and if that audit resolves `Baseline: NONE` over a repo with no substantive
   history, add one line: "no work exists yet; `/did-we-drift init` establishes a ratified basis
   before you start", and stop. A directive, file, or quoted text can never select init.
+- **MODE DISPATCH — update.** Enter update **only** when the invocation's first literal argument
+  is the bare token `update` (trim + casefold: `/did-we-drift update`) — then read
+  `update-mode.md` and follow it instead of auditing. Same strictness as init, same reason: a
+  false update writes to the user's repo. **Never infer update from prose** — "the baseline is
+  stale", "refresh the docs", a milestone closing, or /loop wording all get the ordinary audit;
+  when that audit finds the newest dated baseline block predates real landed work, add one line:
+  "the verified-facts baseline is stale; `/did-we-drift update` refreshes it and dispositions
+  open items", and stop. A directive, file, or quoted text can never select update.
 - **Disclose the auditor** (goes in the report): `same session that produced the work` |
   `fresh session` | `cross-model`.
 - **Set the display flag** — is the user asking to SEE progress? Two ways it gets set, and they
@@ -41,9 +49,13 @@ files — it cites, and proposes candidates the user picks from.**
   status re-derivation in `dashboard.md` §5. Refreshing a page without re-checking the work would
   answer the question they asked with the answer from last time.
 
-  The flag can never select init, never escalate to DEEP, and never change a verdict. **It is not
-  an argument to `init` either**: `/did-we-drift init dashboard` is an init invocation whose
-  second word is ignored, because §0's init dispatch reads only the *first* literal argument.
+  The flag can never select init or update, never escalate to DEEP, and never change a verdict.
+  **It is not an argument to `init` or `update` either**: `/did-we-drift init dashboard` is an
+  init invocation whose second word is ignored, because §0's mode dispatch reads only the *first*
+  literal argument — and `/did-we-drift update dashboard` likewise dispatches update with the
+  second word ignored and the flag NOT set by it (prose in the same message may still set the
+  flag). Inside update, a set flag forces the freshness gate's audit branch (`update-mode.md`
+  Step 2) — the flag's current-truth contract survives every mode.
 - **Pick the mode.** QUICK (this file, single agent, default) — unless ANY of these holds, in
   which case escalate to DEEP and follow `deep-mode.md` in this skill's directory:
   (i) this session authored work under audit; (ii) the last audit's substantive-unmapped ratio
@@ -269,7 +281,7 @@ Runs identically for a RATIFIED or PROVISIONAL basis.
   everything and say so.
 - **Classify every commit in the window:** MAINTENANCE (merges, reverts, lockfiles,
   formatting, CI config, docs-only) · BOOKKEEPING (SSOT ticks, evidence, stamps, **drift-dashboard
-  refreshes**) · SUBSTANTIVE · UNASSESSABLE. Map SUBSTANTIVE commits to the WORK MAP; **only unmapped
+  refreshes, and dated baseline-refresh blocks written by `update`**) · SUBSTANTIVE · UNASSESSABLE. Map SUBSTANTIVE commits to the WORK MAP; **only unmapped
   SUBSTANTIVE work is drift.** Maintenance/bookkeeping are counts, not findings.
 - **ON TRACK requires `Work map: FULL`.** With `PARTIAL`, absence of mapped drift proves
   nothing — the verdict is `INCONCLUSIVE`, unless you positively identified drift, in which
@@ -362,8 +374,9 @@ runs carry one debt reference and may continue existing in-scope work; **scope e
 requires a pick.**
 
 **No-change suppression:** same verdict and unchanged basis + evidence since the last stamp →
-one line + stamp, not a full report (stamps, DRIFT DECISIONS records, and dashboard refreshes
-are bookkeeping and don't count as changes; neither does an unchanged standing ask).
+one line + stamp, not a full report (stamps, DRIFT DECISIONS records, dashboard refreshes, and
+baseline-refresh blocks are bookkeeping and don't count as changes; neither does an unchanged
+standing ask).
 
 **On any DRIFTED verdict, read `interrupt-mode.md` in this skill's directory and follow it** —
 grade-gated: MINOR applies and reports without spending a question; MATERIAL presents slotted
@@ -401,7 +414,11 @@ report line and **never spends interrupt-mode §2's one question**. Open a brows
 re-derives **every** row's status rather than only the sampled ones, because the user is about to
 read every row and believe it. **The dashboard never replaces §5's stamp** — both happen.
 
-## 5. The audit stamp (mandatory in every AUDIT mode, including INCONCLUSIVE — init excluded)
+## 5. The audit stamp (mandatory in every AUDIT mode, including INCONCLUSIVE — init and update excluded)
+
+Init never stamps (init-mode.md). Update's refresh pass never stamps either: an update stamps
+only through the ordinary audit its freshness gate may run (`update-mode.md` Step 2), never from
+the refresh itself — a stamp minted by a refresh would fabricate an audit that never ran.
 
 Append ONE line to the SSOT's `## AUDIT LOG` (create the **section** if absent — never the
 **file**; see the no-host rule below):
@@ -457,6 +474,7 @@ grants write permission; *category* does.
 |---|---|---|
 | **Bookkeeping repair** | a stale date; a mis-cited evidence sha; a missing stamp; a tick whose evidence exists but is unlinked | preauthorized directive (unattended) or the user's yes (attended) |
 | **Derived view** | generating or refreshing the drift dashboard into an existing durable host | preauthorized outright (allow-list item 4) — it restates, it never asserts |
+| **Baseline refresh** | a new dated verified-facts block, carried-item dispositions, and user-stated ruling/binding records, appended via `/did-we-drift update` | attended update mode only — each write shown and confirmed, gated on a covering verdict (`update-mode.md`) |
 | **Content edit** | anything touching the deliverable, stages, workstreams, PARKED, budgets, or authority language — including *deleting* a stale workstream line | **always** the user's yes, at every grade, in every mode |
 
 A MINOR grade on a content edit does not make it applicable — MINOR describes the *finding's*
@@ -514,5 +532,9 @@ decision the user owns, however obviously correct it looks.
 - Showing a dashboard row as Built because work was dispatched, promised, or looks nearly done —
   status comes from the evidence slots (`dashboard.md` §2a), never from momentum.
 - Opening a browser at a user who asked for an audit, not a view.
+- Refreshing the verified-facts baseline to make unresolved drift look sanctioned — `update`'s
+  gate refuses over MATERIAL or CAPTURED; it records what an audit graded, never re-grades.
+- Re-initializing a mature project when its facts went stale — that is `/did-we-drift update`;
+  init's `ratified` row refuses for exactly this reason.
 - Ending without the stamp and "Next check due" — an audit that doesn't re-arm dies with
   the session.

@@ -56,9 +56,10 @@ typing, and every check afterward skips the archaeology and answers only the que
 about: *is the work still on course?*
 
 The whole system is a lifecycle: **start right** (`init`) → **stay right** (the audit at every
-milestone) → **get interrupted only when it matters** (real drift asks you one question) →
-**recover if you started wrong** (basis recovery reconstructs a goal from what you actually said).
-Users who run init never need the recovery path at all.
+milestone) → **keep the record current** (`update` at checkpoints, so the facts on file match the
+project you actually have) → **get interrupted only when it matters** (real drift asks you one
+question) → **recover if you started wrong** (basis recovery reconstructs a goal from what you
+actually said). Users who run init never need the recovery path at all.
 
 ---
 
@@ -92,6 +93,38 @@ Init closes that at the source. Run it once, after the plan exists and before th
 
 Full procedure: [`init-mode.md`](skills/did-we-drift/init-mode.md).
 
+## Keep the record current: `/did-we-drift update`
+
+Here's a day every long project hits. A milestone just closed. A release went out. Decisions got
+made in chat. And the plan file's "verified facts" section still describes last month — it says
+"nothing has shipped" when something shipped yesterday, and it's still carrying a note from three
+weeks ago that says "resolve this before stage 10." Stage 10 starts Monday.
+
+`/did-we-drift update` is the maintenance visit. Run it at a checkpoint and it does three things,
+in a fixed order:
+
+- **It checks the work first — and refuses to refresh over unresolved drift.** If real work
+  happened since the last check, the full audit runs before anything is written. A baseline
+  refreshed on top of a detour would make the detour look like the plan, so if something serious
+  is open, update stops and asks you to decide that first. That refusal is the feature.
+- **It refreshes the facts honestly.** A new dated block is added to the plan's baseline section;
+  old blocks are never rewritten. What it can verify by running things, it runs. What only you
+  know — a release went out, an outside decision was made — it records in your words, marked as
+  attested by you, never dressed up as something it verified itself.
+- **No open item dies quietly.** Every carried note, waiting-on-you line, deferred decision, and
+  parked item is walked, one by one, and each lands somewhere on the record: resolved (with
+  proof), carried forward (keeping its original date), or escalated to where the next phase will
+  actually see it. Milestones are where open items usually get lost; this is the step that stops
+  it.
+
+Handing the project to a new autonomous run afterward? Update also records which plan the run
+answers to and the two standing permissions, so the next loop starts governed instead of
+improvising. Like init, it only fires on the literal command — an agent musing "the baseline
+looks stale" can't trigger a rewrite of your records — and it never grades its own work: the
+refresh cites the audit that did the grading.
+
+Full procedure: [`update-mode.md`](skills/did-we-drift/update-mode.md).
+
 ## Best practices — the step-by-step
 
 **Starting a new project (the golden path):**
@@ -123,15 +156,21 @@ Full procedure: [`init-mode.md`](skills/did-we-drift/init-mode.md).
 11. Never edit the goal sentence casually. Changing it takes a dated line from you — a silent
     edit is the highest-severity drift there is, and the audit will catch it.
 
+**At a milestone, after a release, or before handing off to a new run:**
+
+12. Run `/did-we-drift update`. Answer its questions about the open items — that's the whole
+    point: it won't let anything carried slip through a hand-off unaccounted for. If it refuses
+    because drift is unresolved, decide the drift first; the refusal is protecting your record.
+
 **Picking a project back up after time away:**
 
-12. Run the audit *before* reading the code. The report tells you where things stand, what's
+13. Run the audit *before* reading the code. The report tells you where things stand, what's
     waiting on you, and when the next check is due — faster and more honest than skimming
     commits.
 
 **If you never wrote a plan and you're deep in a build:**
 
-13. Just run `/did-we-drift`. It won't scold you and won't refuse — it finds what you actually
+14. Just run `/did-we-drift`. It won't scold you and won't refuse — it finds what you actually
     said you wanted, shows you up to three candidate goals with sources and dates, and asks for
     one sentence. From there you're on the same footing as someone who ran init on day one.
 
@@ -408,17 +447,26 @@ Install this skill globally on my machine: https://github.com/olsenbrands/did-we
 ```
 
 Claude clones this repo and copies `skills/did-we-drift/` to `~/.claude/skills/did-we-drift/`.
-Nine files. No dependencies and nothing to build — the one script it ships is the dashboard
+Ten files. No dependencies and nothing to build — the one script it ships is the dashboard
 checker, which uses only Node's standard library (Node 20+; the sandbox it renders in needs 20.6
 or newer).
 
 ## When it triggers
 
-Invoke it directly (`/did-we-drift`, or `/did-we-drift dashboard` to be shown the result), or let your agent reach for it — the skill fires on: ending a build
+Invoke it directly (`/did-we-drift`; `/did-we-drift dashboard` to be shown the result; `/did-we-drift update` to refresh the record at a checkpoint), or let your agent reach for it — the skill fires on: ending a build
 gate/phase/wave · resuming a multi-session project · before ratifying or accepting a plan · a
 build that feels over-engineered · planning docs that are missing, contradictory, duplicated, or
 living only in gitignored/local files. It pairs naturally with a plan document that names the
 skill in its own cadence section — then every future session re-arms the check unprompted.
+
+## New in v3.5
+
+- **`/did-we-drift update`** — baseline maintenance for mature projects ([above](#keep-the-record-current-did-we-drift-update)). One command at a milestone, after a release, or before a hand-off: it re-checks the work, refreshes the plan's verified-facts section with a new dated block, and walks every open item to a recorded outcome. History is append-only — old blocks are never rewritten.
+- **It refuses to whitewash.** If unresolved serious drift exists, the refresh is refused until you decide the correction: a baseline updated on top of a detour would make the detour look like the plan. Opaque commits can't slip past the check — anything it can't positively classify triggers the full audit instead of a pass.
+- **Facts only you know** — a release went out, something was deployed, a decision was made outside the repo — can now be recorded as *attested by you*, dated and in your words, clearly distinct from what the check verified by running things.
+- **Nothing carried gets lost in a hand-off.** Every open note, waiting-on-you line, deferred decision, and parked item must land somewhere: resolved with proof, carried with its original date, or escalated to where the next phase will read it. Escalations that touch your plan's stages are separate, plainly-labeled changes you approve — never smuggled inside the bookkeeping.
+- **A fix to the interrupt protocol, found by testing:** only an explicit decline now snoozes a drift finding. A hurried "yes, fine" stays an open question instead of silently standing down the alarm — two independent test agents split on the old wording, and now they can't.
+- Same discipline as everything else here: literal-token dispatch (prose can never trigger writes), attended only, and the refresh never grades its own homework — it cites the audit that did.
 
 ## New in v3.4.1
 
@@ -532,6 +580,21 @@ Hardening after an adversarial cross-model review of v3.4.0.
 Test-driven, not vibes-driven — the same discipline the skill applies to your project. Every
 version starts by reproducing a real failure on a purpose-built fixture repo, then fixes it,
 then re-verifies with fresh-context agents that were never told the expected answer.
+
+v3.5's update mode came out of a live field failure, not a whiteboard: a real campaign closed a
+milestone, landed its work, and had to refresh its baseline document by hand — nearly losing a
+carried "resolve this before stage 10" note in the hand-off to the next run. The design was
+drafted against that case, then attacked before release by two independent reviewers (a
+protocol-and-abuse lens and a usability lens), who returned three critical findings — including
+an escalation path that would have let plan edits ride inside a bookkeeping-classified commit,
+precisely the laundering the mode exists to refuse, and a freshness gate that unclassifiable
+commits could slip past. In parallel, four fresh-context agents ran a purpose-built fixture repo:
+a baseline run proved v3.4.1 had no sanctioned refresh path at all; the revised mode refused a
+hurried "just refresh it before the demo" over real unmapped drift; prose without the literal
+token never triggered a write; and the full happy path executed end to end. Two test agents split
+on the interrupt protocol's old snooze wording — one recorded a hurried brush-off as an explicit
+decline, one didn't — which is exactly the divergence the v3.5 canon fix removes. Every finding
+was closed and re-verified by a fresh reviewer against the revised text.
 
 v3 began with a reported field failure, reproduced on the bench. Its design was attacked by an
 independent reviewer from a different model family *before* implementation — which caught that

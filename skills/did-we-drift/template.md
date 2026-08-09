@@ -25,6 +25,8 @@ commits. This sentence governs work from this point forward; earlier work is dis
 
 ## 2. BASELINE
 Verified facts a fresh agent needs (SHAs, deployed versions, known live defects), dated.
+Refreshed by APPENDING a new dated block (`/did-we-drift update`) at milestones; prior blocks
+are never edited — they stand as their dated records.
 
 ## 2a. PRE-GOVERNANCE RECONCILIATION (only if §1 carries a START-OF-GOVERNANCE line)
 Work that predates ratification, dispositioned — never graded. One line each:
